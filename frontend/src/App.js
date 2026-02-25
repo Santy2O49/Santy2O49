@@ -1791,6 +1791,16 @@ const HomePage = ({ config }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Handle hash navigation on page load
+  useEffect(() => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash) {
+      setTimeout(() => {
+        document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, []);
+
   useEffect(() => {
     const fetchJobs = async () => {
       try {
@@ -1804,9 +1814,54 @@ const HomePage = ({ config }) => {
     fetchJobs();
   }, []);
 
+  // Generate JobPosting schema for SEO
+  const jobPostingSchema = jobs.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": jobs.slice(0, 6).map((job, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "item": {
+        "@type": "JobPosting",
+        "title": job.title,
+        "description": job.description,
+        "employmentType": job.job_type === "Full Time" ? "FULL_TIME" : job.job_type === "Part Time" ? "PART_TIME" : "CONTRACTOR",
+        "jobLocation": {
+          "@type": "Place",
+          "address": {
+            "@type": "PostalAddress",
+            "addressRegion": job.location,
+            "addressCountry": "US"
+          }
+        },
+        "baseSalary": {
+          "@type": "MonetaryAmount",
+          "currency": "USD",
+          "value": {
+            "@type": "QuantitativeValue",
+            "value": job.pay
+          }
+        },
+        "hiringOrganization": {
+          "@type": "Organization",
+          "name": config.site_name
+        },
+        "datePosted": new Date().toISOString().split('T')[0]
+      }
+    }))
+  } : null;
+
   return (
     <div className="min-h-screen bg-slate-950">
-      <Header scrolled={scrolled} config={config} />
+      <SEOHead 
+        title={`${config.site_name} | CDL Jobs Nationwide | Top Trucking Careers`}
+        description="Find the best CDL truck driving jobs nationwide. Connect with 30+ top trucking companies. OTR, Regional, Local & Dedicated routes. High pay, full benefits, home time. Apply now!"
+        path="/"
+      />
+      {jobPostingSchema && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingSchema) }} />
+      )}
+      <Header scrolled={scrolled} config={config} isHomePage={true} />
       <main>
         <HeroSection config={config} />
         <PartnersSection />
