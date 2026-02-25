@@ -1,0 +1,44 @@
+# robots.txt for CDL Career Hub
+# Optimized for search engines and AI crawlers
+
+User-agent: *
+Allow: /
+Allow: /request-info
+Disallow: /admin
+Disallow: /api/admin/
+
+# Sitemap
+Sitemap: https://driver-career-hub.preview.emergentagent.com/sitemap.xml
+
+# AI/LLM specific
+User-agent: GPTBot
+Allow: /
+Allow: /llms.txt
+
+User-agent: ChatGPT-User
+Allow: /
+Allow: /llms.txt
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+Allow: /llms.txt
+
+User-agent: Claude-Web
+Allow: /
+Allow: /llms.txt
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+# Crawl delay for politeness
+User-agent: *
+Crawl-delay: 1
