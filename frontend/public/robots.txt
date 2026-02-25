@@ -1,4 +1,4 @@
-# robots.txt for CDL Career Hub
+# robots.txt for CDL Driver Career Hub
 # Optimized for search engines and AI crawlers
 
 User-agent: *

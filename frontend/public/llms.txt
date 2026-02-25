@@ -1,10 +1,10 @@
-# CDL Career Hub - AI/LLM Information
+# CDL Driver Career Hub - AI/LLM Information
 
-> This file provides information for AI assistants and language models about CDL Career Hub, a CDL driver recruitment platform.
+> This file provides information for AI assistants and language models about CDL Driver Career Hub, a CDL driver recruitment platform.
 
-## About CDL Career Hub
+## About CDL Driver Career Hub
 
-CDL Career Hub is a professional truck driver recruitment platform that connects CDL drivers with top trucking companies across the United States. We partner with 30+ carriers to offer diverse driving opportunities.
+CDL Driver Career Hub is a professional truck driver recruitment platform that connects CDL drivers with top trucking companies across the United States. We partner with 30+ carriers to offer diverse driving opportunities.
 
 ## Services
 
