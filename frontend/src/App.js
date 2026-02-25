@@ -186,10 +186,11 @@ const Header = ({ scrolled, config, isHomePage = true }) => {
               target="_blank"
               rel="noopener noreferrer"
               data-testid="header-apply-btn"
+              aria-label="Quick Apply for CDL Jobs"
             >
               <Button className="btn-accent">
                 Quick Apply
-                <ExternalLink className="w-4 h-4 ml-2" />
+                <ExternalLink className="w-4 h-4 ml-2" aria-hidden="true" />
               </Button>
             </a>
           </div>
@@ -199,29 +200,31 @@ const Header = ({ scrolled, config, isHomePage = true }) => {
             className="md:hidden text-white p-2"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             data-testid="mobile-menu-btn"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
           >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {mobileMenuOpen ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
           </button>
         </div>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden glass-effect rounded-lg mt-2 p-4" data-testid="mobile-menu">
+          <div className="md:hidden glass-effect rounded-lg mt-2 p-4" data-testid="mobile-menu" role="navigation" aria-label="Mobile navigation">
             <nav className="flex flex-col gap-4">
-              <button onClick={() => scrollToSection('benefits')} className="text-slate-300 hover:text-white transition-colors text-left py-2">
+              <Link to="/#benefits" onClick={() => handleNavClick('benefits')} className="text-slate-300 hover:text-white transition-colors text-left py-2">
                 Why Us
-              </button>
-              <button onClick={() => scrollToSection('jobs')} className="text-slate-300 hover:text-white transition-colors text-left py-2">
+              </Link>
+              <Link to="/#jobs" onClick={() => handleNavClick('jobs')} className="text-slate-300 hover:text-white transition-colors text-left py-2">
                 Jobs
-              </button>
-              <button onClick={() => scrollToSection('apply')} className="text-slate-300 hover:text-white transition-colors text-left py-2">
+              </Link>
+              <Link to="/#apply" onClick={() => handleNavClick('apply')} className="text-slate-300 hover:text-white transition-colors text-left py-2">
                 Apply
-              </button>
+              </Link>
               <Link to="/request-info" className="text-slate-300 hover:text-white transition-colors text-left py-2" onClick={() => setMobileMenuOpen(false)}>
                 Request Info
               </Link>
-              <a href={`tel:${config.phone}`} className="flex items-center gap-2 text-slate-300 hover:text-white py-2">
-                <Phone className="w-4 h-4" />
+              <a href={`tel:${config.phone}`} className="flex items-center gap-2 text-slate-300 hover:text-white py-2" aria-label={`Call ${config.phone}`}>
+                <Phone className="w-4 h-4" aria-hidden="true" />
                 <span>{config.phone}</span>
               </a>
               <a 
@@ -229,6 +232,7 @@ const Header = ({ scrolled, config, isHomePage = true }) => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-accent text-center py-3 rounded mt-2"
+                aria-label="Quick Apply for CDL Jobs"
               >
                 Quick Apply
               </a>
