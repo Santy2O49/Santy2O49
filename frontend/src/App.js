@@ -519,60 +519,66 @@ const BenefitsSection = () => {
 // Jobs Section
 const JobsSection = ({ jobs, config }) => {
   return (
-    <section id="jobs" data-testid="jobs-section" className="section-container bg-slate-900/50">
+    <section id="jobs" data-testid="jobs-section" className="section-container bg-slate-900/50" aria-labelledby="jobs-heading">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
+        <header className="text-center mb-16">
           <p className="text-blue-400 font-semibold uppercase tracking-widest mb-4 text-sm">
             Current Openings
           </p>
-          <h2 className="font-['Oswald'] text-3xl md:text-4xl lg:text-5xl font-bold uppercase tracking-tight text-white">
-            Featured Opportunities
+          <h2 id="jobs-heading" className="font-['Oswald'] text-3xl md:text-4xl lg:text-5xl font-bold uppercase tracking-tight text-white">
+            Featured CDL Truck Driving Opportunities
           </h2>
-        </div>
+        </header>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" role="list" aria-label="Job listings">
           {jobs.map((job, index) => (
-            <Card 
+            <article 
               key={job.id || index} 
               className="job-card"
               data-testid={`job-card-${index}`}
+              role="listitem"
+              itemScope
+              itemType="https://schema.org/JobPosting"
             >
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-xs uppercase tracking-wider text-blue-400 font-semibold bg-blue-500/10 px-3 py-1 rounded">
-                    {job.job_type}
-                  </span>
-                </div>
-                <CardTitle className="font-['Oswald'] text-xl font-bold text-white uppercase">
-                  {job.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center gap-2 text-slate-400">
-                    <MapPin className="w-4 h-4 text-slate-500" />
-                    <span className="text-sm">{job.location}</span>
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-xs uppercase tracking-wider text-blue-400 font-semibold bg-blue-500/10 px-3 py-1 rounded" itemProp="employmentType">
+                      {job.job_type}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-green-500" />
-                    <span className="text-green-400 font-semibold">{job.pay}</span>
+                  <CardTitle className="font-['Oswald'] text-xl font-bold text-white uppercase" itemProp="title">
+                    {job.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3 mb-4">
+                    <div className="flex items-center gap-2 text-slate-400" itemProp="jobLocation" itemScope itemType="https://schema.org/Place">
+                      <MapPin className="w-4 h-4 text-slate-500" aria-hidden="true" />
+                      <span className="text-sm" itemProp="address">{job.location}</span>
+                    </div>
+                    <div className="flex items-center gap-2" itemProp="baseSalary" itemScope itemType="https://schema.org/MonetaryAmount">
+                      <DollarSign className="w-4 h-4 text-green-500" aria-hidden="true" />
+                      <span className="text-green-400 font-semibold" itemProp="value">{job.pay}</span>
+                    </div>
                   </div>
-                </div>
-                <p className="text-slate-400 text-sm mb-4 line-clamp-2">
-                  {job.description}
-                </p>
-                <a 
-                  href={config.quick_app_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center text-blue-400 hover:text-blue-300 font-medium text-sm transition-colors"
-                  data-testid={`job-apply-btn-${index}`}
-                >
-                  Apply for this position
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </a>
-              </CardContent>
-            </Card>
+                  <p className="text-slate-400 text-sm mb-4 line-clamp-2" itemProp="description">
+                    {job.description}
+                  </p>
+                  <a 
+                    href={config.quick_app_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center text-blue-400 hover:text-blue-300 font-medium text-sm transition-colors"
+                    data-testid={`job-apply-btn-${index}`}
+                    aria-label={`Apply for ${job.title} position`}
+                  >
+                    Apply for this position
+                    <ChevronRight className="w-4 h-4 ml-1" aria-hidden="true" />
+                  </a>
+                </CardContent>
+              </Card>
+            </article>
           ))}
         </div>
         
@@ -586,16 +592,17 @@ const JobsSection = ({ jobs, config }) => {
               target="_blank"
               rel="noopener noreferrer"
               data-testid="jobs-apply-btn"
+              aria-label="See All CDL Job Positions"
             >
               <Button className="btn-primary">
                 See All Positions
-                <ExternalLink className="w-4 h-4 ml-2" />
+                <ExternalLink className="w-4 h-4 ml-2" aria-hidden="true" />
               </Button>
             </a>
-            <Link to="/request-info">
+            <Link to="/request-info" aria-label="Request more information about CDL jobs">
               <Button className="btn-secondary">
                 Keep Me Posted
-                <MessageSquare className="w-4 h-4 ml-2" />
+                <MessageSquare className="w-4 h-4 ml-2" aria-hidden="true" />
               </Button>
             </Link>
           </div>
