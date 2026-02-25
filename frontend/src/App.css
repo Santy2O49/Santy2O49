@@ -1,0 +1,173 @@
+/* Hero Section */
+.hero-section {
+    min-height: 100vh;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.hero-overlay {
+    background: linear-gradient(to right, 
+        rgba(2, 6, 23, 0.98) 0%,
+        rgba(2, 6, 23, 0.9) 40%,
+        rgba(2, 6, 23, 0.7) 70%,
+        rgba(2, 6, 23, 0.4) 100%
+    );
+}
+
+/* Glass effect */
+.glass-effect {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(30, 41, 59, 0.5);
+}
+
+/* Button styles */
+.btn-primary {
+    background-color: #3b82f6;
+    color: white;
+    font-weight: 700;
+    padding: 1rem 2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
+}
+
+.btn-primary:hover {
+    background-color: #60a5fa;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(59, 130, 246, 0.3);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    font-weight: 600;
+    padding: 1rem 2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    border-color: #64748b;
+    color: white;
+}
+
+.btn-accent {
+    background-color: #f59e0b;
+    color: black;
+    font-weight: 700;
+    padding: 1rem 2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.2);
+}
+
+.btn-accent:hover {
+    background-color: #fbbf24;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(245, 158, 11, 0.3);
+}
+
+/* Card styles */
+.feature-card {
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid #1e293b;
+    padding: 2rem;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    border-color: rgba(59, 130, 246, 0.3);
+    transform: translateY(-4px);
+}
+
+.job-card {
+    background: #0f172a;
+    border-left: 4px solid #3b82f6;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.job-card:hover {
+    background: #1e293b;
+}
+
+/* Form input styles */
+.form-input {
+    background: #020617;
+    border: 1px solid #1e293b;
+    color: #f8fafc;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus {
+    border-color: #3b82f6;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.form-input::placeholder {
+    color: #64748b;
+}
+
+/* Section styles */
+.section-container {
+    padding: 5rem 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .section-container {
+        padding: 8rem 3rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .section-container {
+        padding: 8rem 6rem;
+    }
+}
+
+/* Text gradient */
+.text-gradient {
+    background: linear-gradient(to right, #ffffff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Glow effects */
+.glow-blue {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+}
+
+.glow-amber {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+}
+
+/* Animation classes */
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Stagger animations */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
