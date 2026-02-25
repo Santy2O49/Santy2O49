@@ -369,11 +369,12 @@ const HeroSection = ({ config }) => {
       data-testid="hero-section"
       className="hero-section relative flex items-center"
       style={{ backgroundImage: `url(${HERO_BG})` }}
+      aria-label="Welcome to CDL Career Hub"
     >
-      <div className="hero-overlay absolute inset-0" />
+      <div className="hero-overlay absolute inset-0" aria-hidden="true" />
       
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 py-32 md:py-0">
-        <div className="max-w-3xl">
+        <article className="max-w-3xl">
           <p className="text-blue-400 font-semibold uppercase tracking-widest mb-4 text-sm">
             30+ Carriers Nationwide
           </p>
@@ -394,36 +395,38 @@ const HeroSection = ({ config }) => {
               target="_blank"
               rel="noopener noreferrer"
               data-testid="hero-apply-btn"
+              aria-label="Apply Now for CDL Truck Driving Jobs"
             >
               <Button className="btn-primary w-full sm:w-auto text-lg py-6 px-8">
                 Apply Now
-                <ChevronRight className="w-5 h-5 ml-2" />
+                <ChevronRight className="w-5 h-5 ml-2" aria-hidden="true" />
               </Button>
             </a>
             <Button 
               className="btn-secondary w-full sm:w-auto text-lg py-6 px-8"
               onClick={() => document.getElementById('jobs')?.scrollIntoView({ behavior: 'smooth' })}
               data-testid="hero-view-jobs-btn"
+              aria-label="View Available CDL Jobs"
             >
               View Jobs
             </Button>
           </div>
           
-          <div className="mt-12 flex flex-wrap gap-8 text-slate-400">
-            <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-blue-500" />
+          <div className="mt-12 flex flex-wrap gap-8 text-slate-400" role="list" aria-label="Company statistics">
+            <div className="flex items-center gap-2" role="listitem">
+              <Users className="w-5 h-5 text-blue-500" aria-hidden="true" />
               <span>1000+ Drivers Placed</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Award className="w-5 h-5 text-blue-500" />
+            <div className="flex items-center gap-2" role="listitem">
+              <Award className="w-5 h-5 text-blue-500" aria-hidden="true" />
               <span>Top-Rated Recruiter</span>
             </div>
-            <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-green-500" />
+            <div className="flex items-center gap-2" role="listitem">
+              <FileText className="w-5 h-5 text-green-500" aria-hidden="true" />
               <span className="text-green-400">{applicationsRemaining} Spots Available</span>
             </div>
           </div>
-        </div>
+        </article>
       </div>
     </section>
   );
