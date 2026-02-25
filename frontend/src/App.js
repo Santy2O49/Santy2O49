@@ -93,15 +93,53 @@ const PARTNERS = [
   "Nationwide Haulers", "Elite Transport", "Freedom Freight"
 ];
 
+// ============== SEO COMPONENT ==============
+const SEOHead = ({ title, description, path = "/" }) => {
+  useEffect(() => {
+    document.title = title;
+    
+    // Update meta description
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute('content', description);
+    }
+    
+    // Update canonical URL
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) {
+      canonical.setAttribute('href', window.location.origin + path);
+    }
+    
+    // Update OG tags
+    let ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', title);
+    
+    let ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', description);
+    
+    let ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', window.location.origin + path);
+  }, [title, description, path]);
+  
+  return null;
+};
+
 // ============== SHARED COMPONENTS ==============
 
 // Header Component
-const Header = ({ scrolled, config }) => {
+const Header = ({ scrolled, config, isHomePage = true }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const scrollToSection = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  const handleNavClick = (sectionId) => {
     setMobileMenuOpen(false);
+    if (isHomePage) {
+      // On home page, scroll to section
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      // On other pages, navigate to home with hash
+      navigate('/#' + sectionId);
+    }
   };
 
   return (
@@ -114,29 +152,29 @@ const Header = ({ scrolled, config }) => {
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3" data-testid="logo">
-            <Truck className="w-8 h-8 text-blue-500" />
+          <Link to="/" className="flex items-center gap-3" data-testid="logo" aria-label="Go to homepage">
+            <Truck className="w-8 h-8 text-blue-500" aria-hidden="true" />
             <span className="font-['Oswald'] text-xl md:text-2xl font-bold uppercase tracking-wide text-white">
               {config.site_name}
             </span>
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8">
-            <button onClick={() => scrollToSection('benefits')} className="text-slate-300 hover:text-white transition-colors font-medium">
+          <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
+            <Link to="/#benefits" onClick={() => handleNavClick('benefits')} className="text-slate-300 hover:text-white transition-colors font-medium">
               Why Us
-            </button>
-            <button onClick={() => scrollToSection('jobs')} className="text-slate-300 hover:text-white transition-colors font-medium">
+            </Link>
+            <Link to="/#jobs" onClick={() => handleNavClick('jobs')} className="text-slate-300 hover:text-white transition-colors font-medium">
               Jobs
-            </button>
-            <button onClick={() => scrollToSection('apply')} className="text-slate-300 hover:text-white transition-colors font-medium">
+            </Link>
+            <Link to="/#apply" onClick={() => handleNavClick('apply')} className="text-slate-300 hover:text-white transition-colors font-medium">
               Apply
-            </button>
+            </Link>
             <Link to="/request-info" className="text-slate-300 hover:text-white transition-colors font-medium">
               Request Info
             </Link>
-            <a href={`tel:${config.phone}`} className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors">
-              <Phone className="w-4 h-4" />
+            <a href={`tel:${config.phone}`} className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors" aria-label={`Call us at ${config.phone}`}>
+              <Phone className="w-4 h-4" aria-hidden="true" />
               <span className="font-medium">{config.phone}</span>
             </a>
           </nav>
