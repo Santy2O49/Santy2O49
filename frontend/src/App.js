@@ -4,15 +4,15 @@ import { BrowserRouter, Routes, Route, Link, useNavigate } from "react-router-do
 import axios from "axios";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
-import { 
-  Truck, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  DollarSign, 
-  Shield, 
-  Home, 
-  Map, 
+import {
+  Truck,
+  Phone,
+  Mail,
+  MapPin,
+  DollarSign,
+  Shield,
+  Home,
+  Map,
   ChevronRight,
   Menu,
   X,
@@ -34,8 +34,8 @@ import {
   RefreshCw,
   Eye,
   EyeOff,
-  AlertCircle
-} from "lucide-react";
+  AlertCircle } from
+"lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -45,24 +45,24 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue } from
+"@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  DialogFooter } from
+"@/components/ui/dialog";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow } from
+"@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
@@ -87,40 +87,40 @@ const HERO_BG = "https://images.unsplash.com/photo-1633521248898-19cbbf9ead88?cr
 
 // Partner companies (anonymous)
 const PARTNERS = [
-  "Premier Carrier", "National Fleet", "TransAmerica Logistics",
-  "Cross Country Transport", "United Freight", "Alliance Trucking",
-  "Continental Express", "Highway Masters", "Prime Routes",
-  "Nationwide Haulers", "Elite Transport", "Freedom Freight"
-];
+"Premier Carrier", "National Fleet", "TransAmerica Logistics",
+"Cross Country Transport", "United Freight", "Alliance Trucking",
+"Continental Express", "Highway Masters", "Prime Routes",
+"Nationwide Haulers", "Elite Transport", "Freedom Freight"];
+
 
 // ============== SEO COMPONENT ==============
 const SEOHead = ({ title, description, path = "/" }) => {
   useEffect(() => {
     document.title = title;
-    
+
     // Update meta description
     let metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute('content', description);
     }
-    
+
     // Update canonical URL
     let canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) {
       canonical.setAttribute('href', window.location.origin + path);
     }
-    
+
     // Update OG tags
     let ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) ogTitle.setAttribute('content', title);
-    
+
     let ogDesc = document.querySelector('meta[property="og:description"]');
     if (ogDesc) ogDesc.setAttribute('content', description);
-    
+
     let ogUrl = document.querySelector('meta[property="og:url"]');
     if (ogUrl) ogUrl.setAttribute('content', window.location.origin + path);
   }, [title, description, path]);
-  
+
   return null;
 };
 
@@ -143,12 +143,12 @@ const Header = ({ scrolled, config, isHomePage = true }) => {
   };
 
   return (
-    <header 
+    <header
       data-testid="header"
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'glass-effect shadow-lg' : 'bg-transparent'
-      }`}
-    >
+      scrolled ? 'glass-effect shadow-lg' : 'bg-transparent'}`
+      }>
+
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
@@ -181,13 +181,13 @@ const Header = ({ scrolled, config, isHomePage = true }) => {
 
           {/* Desktop CTA */}
           <div className="hidden md:block">
-            <a 
+            <a
               href={config.quick_app_url}
               target="_blank"
               rel="noopener noreferrer"
               data-testid="header-apply-btn"
-              aria-label="Quick Apply for CDL Jobs"
-            >
+              aria-label="Quick Apply for CDL Jobs">
+
               <Button className="btn-accent">
                 Quick Apply
                 <ExternalLink className="w-4 h-4 ml-2" aria-hidden="true" />
@@ -196,20 +196,20 @@ const Header = ({ scrolled, config, isHomePage = true }) => {
           </div>
 
           {/* Mobile Menu Button */}
-          <button 
+          <button
             className="md:hidden text-white p-2"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             data-testid="mobile-menu-btn"
             aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={mobileMenuOpen}
-          >
+            aria-expanded={mobileMenuOpen}>
+
             {mobileMenuOpen ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
           </button>
         </div>
 
         {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden glass-effect rounded-lg mt-2 p-4" data-testid="mobile-menu" role="navigation" aria-label="Mobile navigation">
+        {mobileMenuOpen &&
+        <div className="md:hidden glass-effect rounded-lg mt-2 p-4" data-testid="mobile-menu" role="navigation" aria-label="Mobile navigation">
             <nav className="flex flex-col gap-4">
               <Link to="/#benefits" onClick={() => handleNavClick('benefits')} className="text-slate-300 hover:text-white transition-colors text-left py-2">
                 Why Us
@@ -227,21 +227,21 @@ const Header = ({ scrolled, config, isHomePage = true }) => {
                 <Phone className="w-4 h-4" aria-hidden="true" />
                 <span>{config.phone}</span>
               </a>
-              <a 
-                href={config.quick_app_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-accent text-center py-3 rounded mt-2"
-                aria-label="Quick Apply for CDL Jobs"
-              >
+              <a
+              href={config.quick_app_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-accent text-center py-3 rounded mt-2"
+              aria-label="Quick Apply for CDL Jobs">
+
                 Quick Apply
               </a>
             </nav>
           </div>
-        )}
+        }
       </div>
-    </header>
-  );
+    </header>);
+
 };
 
 // Footer Component
@@ -262,12 +262,12 @@ const Footer = ({ config }) => {
               Connecting CDL Professionals Nationwide. We connect professional CDL drivers with the best trucking companies across the nation.
             </p>
             <div className="flex gap-4">
-              <a 
+              <a
                 href={config.quick_app_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                data-testid="footer-apply-btn"
-              >
+                data-testid="footer-apply-btn">
+
                 <Button className="btn-primary">
                   Apply Now
                 </Button>
@@ -281,33 +281,33 @@ const Footer = ({ config }) => {
               Quick Links
             </h4>
             <nav className="flex flex-col gap-3">
-              <button 
+              <button
                 onClick={() => document.getElementById('benefits')?.scrollIntoView({ behavior: 'smooth' })}
-                className="text-slate-400 hover:text-white transition-colors text-left"
-              >
+                className="text-slate-400 hover:text-white transition-colors text-left">
+
                 Why Choose Us
               </button>
-              <button 
+              <button
                 onClick={() => document.getElementById('jobs')?.scrollIntoView({ behavior: 'smooth' })}
-                className="text-slate-400 hover:text-white transition-colors text-left"
-              >
+                className="text-slate-400 hover:text-white transition-colors text-left">
+
                 Job Listings
               </button>
-              <button 
+              <button
                 onClick={() => document.getElementById('apply')?.scrollIntoView({ behavior: 'smooth' })}
-                className="text-slate-400 hover:text-white transition-colors text-left"
-              >
+                className="text-slate-400 hover:text-white transition-colors text-left">
+
                 Apply Now
               </button>
               <Link to="/request-info" className="text-slate-400 hover:text-white transition-colors">
                 Request Info
               </Link>
-              <a 
+              <a
                 href={config.quick_app_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-slate-400 hover:text-white transition-colors flex items-center gap-1"
-              >
+                className="text-slate-400 hover:text-white transition-colors flex items-center gap-1">
+
                 IntelliApp
                 <ExternalLink className="w-3 h-3" />
               </a>
@@ -320,19 +320,19 @@ const Footer = ({ config }) => {
               Contact Us
             </h4>
             <div className="space-y-4">
-              <a 
-                href={`tel:${config.phone}`} 
+              <a
+                href={`tel:${config.phone}`}
                 className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors"
-                data-testid="footer-phone"
-              >
+                data-testid="footer-phone">
+
                 <Phone className="w-5 h-5 text-blue-500" />
                 <span className="font-semibold">{config.phone}</span>
               </a>
-              <a 
-                href={`mailto:${config.email}`} 
+              <a
+                href={`mailto:${config.email}`}
                 className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors"
-                data-testid="footer-email"
-              >
+                data-testid="footer-email">
+
                 <Mail className="w-5 h-5 text-blue-500" />
                 <span>{config.email}</span>
               </a>
@@ -354,8 +354,8 @@ const Footer = ({ config }) => {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>);
+
 };
 
 // ============== HOME PAGE COMPONENTS ==============
@@ -363,14 +363,14 @@ const Footer = ({ config }) => {
 // Hero Section
 const HeroSection = ({ config }) => {
   const applicationsRemaining = config.application_limit - config.applications_used;
-  
+
   return (
-    <section 
+    <section
       data-testid="hero-section"
       className="hero-section relative flex items-center"
       style={{ backgroundImage: `url(${HERO_BG})` }}
-      aria-label="Welcome to CDL Career Hub"
-    >
+      aria-label="Welcome to CDL Career Hub">
+
       <div className="hero-overlay absolute inset-0" aria-hidden="true" />
       
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 py-32 md:py-0">
@@ -390,24 +390,24 @@ const HeroSection = ({ config }) => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4">
-            <a 
+            <a
               href={config.quick_app_url}
               target="_blank"
               rel="noopener noreferrer"
               data-testid="hero-apply-btn"
-              aria-label="Apply Now for CDL Truck Driving Jobs"
-            >
+              aria-label="Apply Now for CDL Truck Driving Jobs">
+
               <Button className="btn-primary w-full sm:w-auto text-lg py-6 px-8">
                 Apply Now
                 <ChevronRight className="w-5 h-5 ml-2" aria-hidden="true" />
               </Button>
             </a>
-            <Button 
+            <Button
               className="btn-secondary w-full sm:w-auto text-lg py-6 px-8"
               onClick={() => document.getElementById('jobs')?.scrollIntoView({ behavior: 'smooth' })}
               data-testid="hero-view-jobs-btn"
-              aria-label="View Available CDL Jobs"
-            >
+              aria-label="View Available CDL Jobs">
+
               View Jobs
             </Button>
           </div>
@@ -428,57 +428,57 @@ const HeroSection = ({ config }) => {
           </div>
         </article>
       </div>
-    </section>
-  );
+    </section>);
+
 };
 
 // Partners Marquee Section
 const PartnersSection = () => {
   return (
     <section data-testid="partners-section" className="bg-slate-950 py-8 border-y border-slate-800 overflow-hidden">
-      <p className="text-center text-slate-500 uppercase tracking-widest text-sm mb-6 font-semibold">
-        Trusted By Industry Leaders
+      <p className="text-center text-slate-500 uppercase tracking-widest text-sm mb-6 font-semibold">Industry Leaders
+
       </p>
       <div className="relative">
         <div className="animate-marquee flex gap-12 whitespace-nowrap">
-          {[...PARTNERS, ...PARTNERS].map((partner, index) => (
-            <span 
-              key={index} 
-              className="text-slate-600 font-['Oswald'] text-xl uppercase tracking-wider"
-            >
+          {[...PARTNERS, ...PARTNERS].map((partner, index) =>
+          <span
+            key={index}
+            className="text-slate-600 font-['Oswald'] text-xl uppercase tracking-wider">
+
               {partner}
             </span>
-          ))}
+          )}
         </div>
       </div>
-    </section>
-  );
+    </section>);
+
 };
 
 // Benefits Section
 const BenefitsSection = () => {
   const benefits = [
-    {
-      icon: Map,
-      title: "Nationwide Network",
-      description: "Access to 30+ carriers across all 48 contiguous states. Find the perfect route for your lifestyle."
-    },
-    {
-      icon: DollarSign,
-      title: "Top Tier Pay",
-      description: "Competitive CPM rates and guaranteed weekly minimums. Get paid what you're worth."
-    },
-    {
-      icon: Shield,
-      title: "Full Benefits",
-      description: "Health, dental, vision, and 401k options available. Take care of yourself and your family."
-    },
-    {
-      icon: Home,
-      title: "Home Time",
-      description: "Routes that respect your time with family. Regional, OTR, and dedicated options available."
-    }
-  ];
+  {
+    icon: Map,
+    title: "Nationwide Network",
+    description: "Access to 30+ carriers across all 48 contiguous states. Find the perfect route for your lifestyle."
+  },
+  {
+    icon: DollarSign,
+    title: "Top Tier Pay",
+    description: "Competitive CPM rates and guaranteed weekly minimums. Get paid what you're worth."
+  },
+  {
+    icon: Shield,
+    title: "Full Benefits",
+    description: "Health, dental, vision, and 401k options available. Take care of yourself and your family."
+  },
+  {
+    icon: Home,
+    title: "Home Time",
+    description: "Routes that respect your time with family. Regional, OTR, and dedicated options available."
+  }];
+
 
   return (
     <section id="benefits" data-testid="benefits-section" className="section-container bg-slate-950">
@@ -493,12 +493,12 @@ const BenefitsSection = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {benefits.map((benefit, index) => (
-            <Card 
-              key={index} 
-              className="feature-card group cursor-default"
-              data-testid={`benefit-card-${index}`}
-            >
+          {benefits.map((benefit, index) =>
+          <Card
+            key={index}
+            className="feature-card group cursor-default"
+            data-testid={`benefit-card-${index}`}>
+
               <CardContent className="p-8">
                 <benefit.icon className="w-12 h-12 text-blue-500 mb-6 group-hover:scale-110 transition-transform" />
                 <h3 className="font-['Oswald'] text-2xl font-bold text-white uppercase tracking-wide mb-4">
@@ -509,11 +509,11 @@ const BenefitsSection = () => {
                 </p>
               </CardContent>
             </Card>
-          ))}
+          )}
         </div>
       </div>
-    </section>
-  );
+    </section>);
+
 };
 
 // Jobs Section
@@ -531,15 +531,15 @@ const JobsSection = ({ jobs, config }) => {
         </header>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" role="list" aria-label="Job listings">
-          {jobs.map((job, index) => (
-            <article 
-              key={job.id || index} 
-              className="job-card"
-              data-testid={`job-card-${index}`}
-              role="listitem"
-              itemScope
-              itemType="https://schema.org/JobPosting"
-            >
+          {jobs.map((job, index) =>
+          <article
+            key={job.id || index}
+            className="job-card"
+            data-testid={`job-card-${index}`}
+            role="listitem"
+            itemScope
+            itemType="https://schema.org/JobPosting">
+
               <Card>
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start mb-2">
@@ -565,21 +565,21 @@ const JobsSection = ({ jobs, config }) => {
                   <p className="text-slate-400 text-sm mb-4 line-clamp-2" itemProp="description">
                     {job.description}
                   </p>
-                  <a 
-                    href={config.quick_app_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center text-blue-400 hover:text-blue-300 font-medium text-sm transition-colors"
-                    data-testid={`job-apply-btn-${index}`}
-                    aria-label={`Apply for ${job.title} position`}
-                  >
+                  <a
+                  href={config.quick_app_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-blue-400 hover:text-blue-300 font-medium text-sm transition-colors"
+                  data-testid={`job-apply-btn-${index}`}
+                  aria-label={`Apply for ${job.title} position`}>
+
                     Apply for this position
                     <ChevronRight className="w-4 h-4 ml-1" aria-hidden="true" />
                   </a>
                 </CardContent>
               </Card>
             </article>
-          ))}
+          )}
         </div>
         
         <div className="text-center mt-12">
@@ -587,13 +587,13 @@ const JobsSection = ({ jobs, config }) => {
             Don't see what you're looking for? We have more opportunities available.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a 
+            <a
               href={config.quick_app_url}
               target="_blank"
               rel="noopener noreferrer"
               data-testid="jobs-apply-btn"
-              aria-label="See All CDL Job Positions"
-            >
+              aria-label="See All CDL Job Positions">
+
               <Button className="btn-primary">
                 See All Positions
                 <ExternalLink className="w-4 h-4 ml-2" aria-hidden="true" />
@@ -608,8 +608,8 @@ const JobsSection = ({ jobs, config }) => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>);
+
 };
 
 // Application Form Section
@@ -626,14 +626,14 @@ const ApplicationSection = ({ config }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (applicationsRemaining <= 0) {
       toast.error("Application limit reached", {
         description: "Please call us directly or check back later."
       });
       return;
     }
-    
+
     setIsSubmitting(true);
 
     try {
@@ -641,7 +641,7 @@ const ApplicationSection = ({ config }) => {
         ...formData,
         cdl_experience: parseInt(formData.cdl_experience) || 0
       };
-      
+
       await axios.post(`${API}/leads`, payload);
       toast.success("Application Submitted!", {
         description: "We'll contact you within 24 hours."
@@ -690,12 +690,12 @@ const ApplicationSection = ({ config }) => {
               {config.phone}
             </a>
           </p>
-          {applicationsRemaining > 0 && applicationsRemaining <= 20 && (
-            <p className="text-amber-400 mt-4 flex items-center justify-center gap-2">
+          {applicationsRemaining > 0 && applicationsRemaining <= 20 &&
+          <p className="text-amber-400 mt-4 flex items-center justify-center gap-2">
               <AlertCircle className="w-5 h-5" />
               Only {applicationsRemaining} spots remaining!
             </p>
-          )}
+          }
         </div>
         
         <Card className="glass-effect border-slate-700" data-testid="application-form-card">
@@ -713,8 +713,8 @@ const ApplicationSection = ({ config }) => {
                     onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                     className="form-input h-12"
                     required
-                    data-testid="input-full-name"
-                  />
+                    data-testid="input-full-name" />
+
                 </div>
                 
                 <div className="space-y-2">
@@ -728,8 +728,8 @@ const ApplicationSection = ({ config }) => {
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="form-input h-12"
                     required
-                    data-testid="input-phone"
-                  />
+                    data-testid="input-phone" />
+
                 </div>
               </div>
               
@@ -744,8 +744,8 @@ const ApplicationSection = ({ config }) => {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="form-input h-12"
                   required
-                  data-testid="input-email"
-                />
+                  data-testid="input-email" />
+
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -753,10 +753,10 @@ const ApplicationSection = ({ config }) => {
                   <label className="text-sm font-medium text-slate-300 uppercase tracking-wide">
                     CDL Experience (Years) *
                   </label>
-                  <Select 
-                    value={formData.cdl_experience} 
-                    onValueChange={(value) => setFormData({ ...formData, cdl_experience: value })}
-                  >
+                  <Select
+                    value={formData.cdl_experience}
+                    onValueChange={(value) => setFormData({ ...formData, cdl_experience: value })}>
+
                     <SelectTrigger className="form-input h-12" data-testid="select-experience">
                       <SelectValue placeholder="Select experience" />
                     </SelectTrigger>
@@ -782,18 +782,18 @@ const ApplicationSection = ({ config }) => {
                     className="form-input h-12"
                     required
                     maxLength={5}
-                    data-testid="input-zip"
-                  />
+                    data-testid="input-zip" />
+
                 </div>
               </div>
               
               <div className="pt-4">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="btn-accent w-full py-6 text-lg"
                   disabled={isSubmitting || applicationsRemaining <= 0}
-                  data-testid="submit-application-btn"
-                >
+                  data-testid="submit-application-btn">
+
                   {isSubmitting ? 'Submitting...' : applicationsRemaining <= 0 ? 'Limit Reached - Call Us' : 'Submit Application'}
                 </Button>
               </div>
@@ -807,20 +807,20 @@ const ApplicationSection = ({ config }) => {
         
         <div className="mt-8 text-center">
           <p className="text-slate-400 mb-4">Prefer the full application?</p>
-          <a 
+          <a
             href={config.quick_app_url}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center text-blue-400 hover:text-blue-300 font-semibold transition-colors"
-            data-testid="intelliapp-link"
-          >
+            data-testid="intelliapp-link">
+
             Complete IntelliApp Application
             <ExternalLink className="w-4 h-4 ml-2" />
           </a>
         </div>
       </div>
-    </section>
-  );
+    </section>);
+
 };
 
 // ============== REQUEST INFO PAGE ==============
@@ -869,11 +869,11 @@ const RequestInfoPage = ({ config }) => {
 
   return (
     <div className="min-h-screen bg-slate-950">
-      <SEOHead 
+      <SEOHead
         title={`Request Info | ${config.site_name} | CDL Driver Recruitment`}
         description="Can't find the perfect CDL job? Let us know what you're looking for. We'll keep your info on file and contact you when the right opportunity comes along."
-        path="/request-info"
-      />
+        path="/request-info" />
+
       <Header scrolled={scrolled} config={config} isHomePage={false} />
       
       <main className="pt-32 pb-20 px-4 md:px-8">
@@ -907,8 +907,8 @@ const RequestInfoPage = ({ config }) => {
                       onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                       className="form-input h-12"
                       required
-                      data-testid="info-input-name"
-                    />
+                      data-testid="info-input-name" />
+
                   </div>
                   
                   <div className="space-y-2">
@@ -922,8 +922,8 @@ const RequestInfoPage = ({ config }) => {
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       className="form-input h-12"
                       required
-                      data-testid="info-input-phone"
-                    />
+                      data-testid="info-input-phone" />
+
                   </div>
                 </div>
 
@@ -938,18 +938,18 @@ const RequestInfoPage = ({ config }) => {
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="form-input h-12"
                     required
-                    data-testid="info-input-email"
-                  />
+                    data-testid="info-input-email" />
+
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-300 uppercase tracking-wide">
                     Best Way to Reach Ya
                   </label>
-                  <Select 
-                    value={formData.preferred_contact} 
-                    onValueChange={(value) => setFormData({ ...formData, preferred_contact: value })}
-                  >
+                  <Select
+                    value={formData.preferred_contact}
+                    onValueChange={(value) => setFormData({ ...formData, preferred_contact: value })}>
+
                     <SelectTrigger className="form-input h-12" data-testid="info-select-contact">
                       <SelectValue />
                     </SelectTrigger>
@@ -970,17 +970,17 @@ const RequestInfoPage = ({ config }) => {
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     className="form-input min-h-[120px] resize-none"
-                    data-testid="info-textarea-message"
-                  />
+                    data-testid="info-textarea-message" />
+
                 </div>
 
                 <div className="pt-4">
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="btn-accent w-full py-6 text-lg"
                     disabled={isSubmitting}
-                    data-testid="info-submit-btn"
-                  >
+                    data-testid="info-submit-btn">
+
                     {isSubmitting ? 'Sending...' : "Keep Me in the Loop 🚛"}
                   </Button>
                 </div>
@@ -1009,8 +1009,8 @@ const RequestInfoPage = ({ config }) => {
       </main>
 
       <Footer config={config} />
-    </div>
-  );
+    </div>);
+
 };
 
 // ============== ADMIN PAGE ==============
@@ -1019,18 +1019,18 @@ const AdminPage = ({ config, refreshConfig }) => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
-  
+
   // Data states
   const [stats, setStats] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [leads, setLeads] = useState([]);
   const [infoRequests, setInfoRequests] = useState([]);
   const [siteConfig, setSiteConfig] = useState(config);
-  
+
   // Loading states
   const [isLoading, setIsLoading] = useState(false);
   const [isSavingConfig, setIsSavingConfig] = useState(false);
-  
+
   // Job form state
   const [editingJob, setEditingJob] = useState(null);
   const [jobForm, setJobForm] = useState({
@@ -1057,7 +1057,7 @@ const AdminPage = ({ config, refreshConfig }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoggingIn(true);
-    
+
     try {
       await axios.post(`${API}/admin/login`, {}, {
         auth: {
@@ -1077,16 +1077,16 @@ const AdminPage = ({ config, refreshConfig }) => {
   const fetchData = useCallback(async () => {
     if (!isAuthenticated) return;
     setIsLoading(true);
-    
+
     try {
       const [statsRes, jobsRes, leadsRes, requestsRes, configRes] = await Promise.all([
-        axios.get(`${API}/admin/stats`, getAuthHeader()),
-        axios.get(`${API}/admin/jobs`, getAuthHeader()),
-        axios.get(`${API}/admin/leads`, getAuthHeader()),
-        axios.get(`${API}/admin/info-requests`, getAuthHeader()),
-        axios.get(`${API}/config`)
-      ]);
-      
+      axios.get(`${API}/admin/stats`, getAuthHeader()),
+      axios.get(`${API}/admin/jobs`, getAuthHeader()),
+      axios.get(`${API}/admin/leads`, getAuthHeader()),
+      axios.get(`${API}/admin/info-requests`, getAuthHeader()),
+      axios.get(`${API}/config`)]
+      );
+
       setStats(statsRes.data);
       setJobs(jobsRes.data);
       setLeads(leadsRes.data);
@@ -1134,8 +1134,8 @@ const AdminPage = ({ config, refreshConfig }) => {
     try {
       const jobData = {
         ...jobForm,
-        requirements: jobForm.requirements.split('\n').filter(r => r.trim()),
-        benefits: jobForm.benefits.split('\n').filter(b => b.trim())
+        requirements: jobForm.requirements.split('\n').filter((r) => r.trim()),
+        benefits: jobForm.benefits.split('\n').filter((b) => b.trim())
       };
 
       if (editingJob) {
@@ -1145,7 +1145,7 @@ const AdminPage = ({ config, refreshConfig }) => {
         await axios.post(`${API}/admin/jobs`, jobData, getAuthHeader());
         toast.success("Job created!");
       }
-      
+
       setShowJobDialog(false);
       setEditingJob(null);
       setJobForm({
@@ -1166,7 +1166,7 @@ const AdminPage = ({ config, refreshConfig }) => {
 
   const handleDeleteJob = async (jobId) => {
     if (!confirm("Are you sure you want to delete this job?")) return;
-    
+
     try {
       await axios.delete(`${API}/admin/jobs/${jobId}`, getAuthHeader());
       toast.success("Job deleted!");
@@ -1236,8 +1236,8 @@ const AdminPage = ({ config, refreshConfig }) => {
                   onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
                   className="form-input"
                   required
-                  data-testid="admin-username"
-                />
+                  data-testid="admin-username" />
+
               </div>
               <div className="space-y-2">
                 <label className="text-sm text-slate-300">Password</label>
@@ -1247,15 +1247,15 @@ const AdminPage = ({ config, refreshConfig }) => {
                   onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
                   className="form-input"
                   required
-                  data-testid="admin-password"
-                />
+                  data-testid="admin-password" />
+
               </div>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="btn-primary w-full"
                 disabled={isLoggingIn}
-                data-testid="admin-login-btn"
-              >
+                data-testid="admin-login-btn">
+
                 {isLoggingIn ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>
@@ -1266,8 +1266,8 @@ const AdminPage = ({ config, refreshConfig }) => {
             </div>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>);
+
   }
 
   // Admin Dashboard
@@ -1295,8 +1295,8 @@ const AdminPage = ({ config, refreshConfig }) => {
                   setIsAuthenticated(false);
                   setCredentials({ username: '', password: '' });
                 }}
-                className="text-slate-400 hover:text-white"
-              >
+                className="text-slate-400 hover:text-white">
+
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
               </Button>
@@ -1444,8 +1444,8 @@ const AdminPage = ({ config, refreshConfig }) => {
                           value={jobForm.title}
                           onChange={(e) => setJobForm({ ...jobForm, title: e.target.value })}
                           className="form-input"
-                          placeholder="OTR Dry Van Driver"
-                        />
+                          placeholder="OTR Dry Van Driver" />
+
                       </div>
                       <div className="space-y-2">
                         <Label className="text-slate-300">Location *</Label>
@@ -1453,8 +1453,8 @@ const AdminPage = ({ config, refreshConfig }) => {
                           value={jobForm.location}
                           onChange={(e) => setJobForm({ ...jobForm, location: e.target.value })}
                           className="form-input"
-                          placeholder="Nationwide"
-                        />
+                          placeholder="Nationwide" />
+
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -1464,15 +1464,15 @@ const AdminPage = ({ config, refreshConfig }) => {
                           value={jobForm.pay}
                           onChange={(e) => setJobForm({ ...jobForm, pay: e.target.value })}
                           className="form-input"
-                          placeholder="$0.65 - $0.75 CPM"
-                        />
+                          placeholder="$0.65 - $0.75 CPM" />
+
                       </div>
                       <div className="space-y-2">
                         <Label className="text-slate-300">Job Type</Label>
-                        <Select 
-                          value={jobForm.job_type} 
-                          onValueChange={(value) => setJobForm({ ...jobForm, job_type: value })}
-                        >
+                        <Select
+                          value={jobForm.job_type}
+                          onValueChange={(value) => setJobForm({ ...jobForm, job_type: value })}>
+
                           <SelectTrigger className="form-input">
                             <SelectValue />
                           </SelectTrigger>
@@ -1490,8 +1490,8 @@ const AdminPage = ({ config, refreshConfig }) => {
                         value={jobForm.description}
                         onChange={(e) => setJobForm({ ...jobForm, description: e.target.value })}
                         className="form-input min-h-[80px]"
-                        placeholder="Job description..."
-                      />
+                        placeholder="Job description..." />
+
                     </div>
                     <div className="space-y-2">
                       <Label className="text-slate-300">Requirements (one per line)</Label>
@@ -1499,8 +1499,8 @@ const AdminPage = ({ config, refreshConfig }) => {
                         value={jobForm.requirements}
                         onChange={(e) => setJobForm({ ...jobForm, requirements: e.target.value })}
                         className="form-input min-h-[80px]"
-                        placeholder="Valid CDL-A&#10;2+ years experience&#10;Clean MVR"
-                      />
+                        placeholder="Valid CDL-A&#10;2+ years experience&#10;Clean MVR" />
+
                     </div>
                     <div className="space-y-2">
                       <Label className="text-slate-300">Benefits (one per line)</Label>
@@ -1508,14 +1508,14 @@ const AdminPage = ({ config, refreshConfig }) => {
                         value={jobForm.benefits}
                         onChange={(e) => setJobForm({ ...jobForm, benefits: e.target.value })}
                         className="form-input min-h-[80px]"
-                        placeholder="Health Insurance&#10;401k Match&#10;Weekly Pay"
-                      />
+                        placeholder="Health Insurance&#10;401k Match&#10;Weekly Pay" />
+
                     </div>
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={jobForm.is_active}
-                        onCheckedChange={(checked) => setJobForm({ ...jobForm, is_active: checked })}
-                      />
+                        onCheckedChange={(checked) => setJobForm({ ...jobForm, is_active: checked })} />
+
                       <Label className="text-slate-300">Active (visible on site)</Label>
                     </div>
                   </div>
@@ -1543,8 +1543,8 @@ const AdminPage = ({ config, refreshConfig }) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {jobs.map((job) => (
-                    <TableRow key={job.id} className="border-slate-800">
+                  {jobs.map((job) =>
+                  <TableRow key={job.id} className="border-slate-800">
                       <TableCell className="text-white font-medium">{job.title}</TableCell>
                       <TableCell className="text-slate-400">{job.location}</TableCell>
                       <TableCell className="text-green-400">{job.pay}</TableCell>
@@ -1557,33 +1557,33 @@ const AdminPage = ({ config, refreshConfig }) => {
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleToggleJobStatus(job)}
-                            className="text-slate-400 hover:text-white"
-                          >
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleToggleJobStatus(job)}
+                          className="text-slate-400 hover:text-white">
+
                             {job.is_active ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </Button>
                           <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => openEditJob(job)}
-                            className="text-slate-400 hover:text-white"
-                          >
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => openEditJob(job)}
+                          className="text-slate-400 hover:text-white">
+
                             <Edit className="w-4 h-4" />
                           </Button>
                           <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDeleteJob(job.id)}
-                            className="text-red-400 hover:text-red-300"
-                          >
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteJob(job.id)}
+                          className="text-red-400 hover:text-red-300">
+
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </Card>
@@ -1606,8 +1606,8 @@ const AdminPage = ({ config, refreshConfig }) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {leads.map((lead) => (
-                    <TableRow key={lead.id} className="border-slate-800">
+                  {leads.map((lead) =>
+                  <TableRow key={lead.id} className="border-slate-800">
                       <TableCell className="text-white font-medium">{lead.full_name}</TableCell>
                       <TableCell className="text-slate-400">
                         <a href={`tel:${lead.phone}`} className="text-blue-400 hover:text-blue-300">{lead.phone}</a>
@@ -1624,23 +1624,23 @@ const AdminPage = ({ config, refreshConfig }) => {
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDeleteLead(lead.id)}
-                          className="text-red-400 hover:text-red-300"
-                        >
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDeleteLead(lead.id)}
+                        className="text-red-400 hover:text-red-300">
+
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </TableCell>
                     </TableRow>
-                  ))}
-                  {leads.length === 0 && (
-                    <TableRow>
+                  )}
+                  {leads.length === 0 &&
+                  <TableRow>
                       <TableCell colSpan={7} className="text-center text-slate-500 py-8">
                         No leads yet
                       </TableCell>
                     </TableRow>
-                  )}
+                  }
                 </TableBody>
               </Table>
             </Card>
@@ -1662,8 +1662,8 @@ const AdminPage = ({ config, refreshConfig }) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {infoRequests.map((req) => (
-                    <TableRow key={req.id} className="border-slate-800">
+                  {infoRequests.map((req) =>
+                  <TableRow key={req.id} className="border-slate-800">
                       <TableCell className="text-white font-medium">{req.full_name}</TableCell>
                       <TableCell className="text-slate-400">
                         <a href={`tel:${req.phone}`} className="text-blue-400 hover:text-blue-300">{req.phone}</a>
@@ -1679,14 +1679,14 @@ const AdminPage = ({ config, refreshConfig }) => {
                         </Badge>
                       </TableCell>
                     </TableRow>
-                  ))}
-                  {infoRequests.length === 0 && (
-                    <TableRow>
+                  )}
+                  {infoRequests.length === 0 &&
+                  <TableRow>
                       <TableCell colSpan={6} className="text-center text-slate-500 py-8">
                         No info requests yet
                       </TableCell>
                     </TableRow>
-                  )}
+                  }
                 </TableBody>
               </Table>
             </Card>
@@ -1704,8 +1704,8 @@ const AdminPage = ({ config, refreshConfig }) => {
                       value={siteConfig.site_name}
                       onChange={(e) => setSiteConfig({ ...siteConfig, site_name: e.target.value })}
                       className="form-input"
-                      placeholder="CDL Career Hub"
-                    />
+                      placeholder="CDL Career Hub" />
+
                     <p className="text-xs text-slate-500">This is your main brand name displayed on the site</p>
                   </div>
                   <div className="space-y-2">
@@ -1714,8 +1714,8 @@ const AdminPage = ({ config, refreshConfig }) => {
                       value={siteConfig.powered_by_name}
                       onChange={(e) => setSiteConfig({ ...siteConfig, powered_by_name: e.target.value })}
                       className="form-input"
-                      placeholder="Skillconnect LLC"
-                    />
+                      placeholder="Skillconnect LLC" />
+
                     <p className="text-xs text-slate-500">Shown in small print at the bottom of the page</p>
                   </div>
                 </div>
@@ -1727,8 +1727,8 @@ const AdminPage = ({ config, refreshConfig }) => {
                       value={siteConfig.phone}
                       onChange={(e) => setSiteConfig({ ...siteConfig, phone: e.target.value })}
                       className="form-input"
-                      placeholder="(479) 977-6813"
-                    />
+                      placeholder="(479) 977-6813" />
+
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-300">Email</Label>
@@ -1736,8 +1736,8 @@ const AdminPage = ({ config, refreshConfig }) => {
                       value={siteConfig.email}
                       onChange={(e) => setSiteConfig({ ...siteConfig, email: e.target.value })}
                       className="form-input"
-                      placeholder="recruiting@example.com"
-                    />
+                      placeholder="recruiting@example.com" />
+
                   </div>
                 </div>
                 
@@ -1747,8 +1747,8 @@ const AdminPage = ({ config, refreshConfig }) => {
                     value={siteConfig.quick_app_url}
                     onChange={(e) => setSiteConfig({ ...siteConfig, quick_app_url: e.target.value })}
                     className="form-input"
-                    placeholder="https://intelliapp.driverapponline.com/m/..."
-                  />
+                    placeholder="https://intelliapp.driverapponline.com/m/..." />
+
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1759,8 +1759,8 @@ const AdminPage = ({ config, refreshConfig }) => {
                       value={siteConfig.application_limit}
                       onChange={(e) => setSiteConfig({ ...siteConfig, application_limit: parseInt(e.target.value) || 100 })}
                       className="form-input"
-                      placeholder="100"
-                    />
+                      placeholder="100" />
+
                     <p className="text-xs text-slate-500">Max applications before the form is disabled</p>
                   </div>
                   <div className="space-y-2">
@@ -1771,8 +1771,8 @@ const AdminPage = ({ config, refreshConfig }) => {
                         value={siteConfig.applications_used}
                         onChange={(e) => setSiteConfig({ ...siteConfig, applications_used: parseInt(e.target.value) || 0 })}
                         className="form-input"
-                        placeholder="0"
-                      />
+                        placeholder="0" />
+
                       <Button onClick={handleResetCounter} className="btn-secondary whitespace-nowrap">
                         Reset
                       </Button>
@@ -1791,8 +1791,8 @@ const AdminPage = ({ config, refreshConfig }) => {
           </TabsContent>
         </Tabs>
       </main>
-    </div>
-  );
+    </div>);
+
 };
 
 // ============== HOME PAGE ==============
@@ -1868,14 +1868,14 @@ const HomePage = ({ config }) => {
 
   return (
     <div className="min-h-screen bg-slate-950">
-      <SEOHead 
+      <SEOHead
         title={`${config.site_name} | CDL Jobs Nationwide | Top Trucking Careers`}
         description="Find the best CDL truck driving jobs nationwide. Connect with 30+ top trucking companies. OTR, Regional, Local & Dedicated routes. High pay, full benefits, home time. Apply now!"
-        path="/"
-      />
-      {jobPostingSchema && (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingSchema) }} />
-      )}
+        path="/" />
+
+      {jobPostingSchema &&
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingSchema) }} />
+      }
       <Header scrolled={scrolled} config={config} isHomePage={true} />
       <main>
         <HeroSection config={config} />
@@ -1885,8 +1885,8 @@ const HomePage = ({ config }) => {
         <ApplicationSection config={config} />
       </main>
       <Footer config={config} />
-    </div>
-  );
+    </div>);
+
 };
 
 // ============== MAIN APP ==============
@@ -1916,8 +1916,8 @@ function App() {
           <Route path="/admin" element={<AdminPage config={config} refreshConfig={fetchConfig} />} />
         </Routes>
       </BrowserRouter>
-    </div>
-  );
+    </div>);
+
 }
 
 export default App;
