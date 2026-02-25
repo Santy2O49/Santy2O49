@@ -73,7 +73,7 @@ const API = `${BACKEND_URL}/api`;
 
 // Default Config (fallback)
 const DEFAULT_CONFIG = {
-  site_name: "CDL Career Hub",
+  site_name: "CDL Driver Career Hub",
   powered_by_name: "Skillconnect LLC",
   phone: "(479) 977-6813",
   email: "skillconnect.recruiting@gmail.com",
@@ -1879,7 +1879,6 @@ const HomePage = ({ config }) => {
       <Header scrolled={scrolled} config={config} isHomePage={true} />
       <main>
         <HeroSection config={config} />
-        <PartnersSection />
         <BenefitsSection />
         <JobsSection jobs={jobs} config={config} />
         <ApplicationSection config={config} />

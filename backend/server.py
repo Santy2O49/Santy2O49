@@ -62,7 +62,7 @@ class SiteConfig(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
     id: str = "site_config"
-    site_name: str = "CDL Career Hub"
+    site_name: str = "CDL Driver Career Hub"
     powered_by_name: str = "Skillconnect LLC"
     phone: str = "(479) 977-6813"
     email: str = "skillconnect.recruiting@gmail.com"
