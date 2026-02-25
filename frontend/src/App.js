@@ -859,7 +859,12 @@ const RequestInfoPage = ({ config }) => {
 
   return (
     <div className="min-h-screen bg-slate-950">
-      <Header scrolled={scrolled} config={config} />
+      <SEOHead 
+        title={`Request Info | ${config.site_name} | CDL Driver Recruitment`}
+        description="Can't find the perfect CDL job? Let us know what you're looking for. We'll keep your info on file and contact you when the right opportunity comes along."
+        path="/request-info"
+      />
+      <Header scrolled={scrolled} config={config} isHomePage={false} />
       
       <main className="pt-32 pb-20 px-4 md:px-8">
         <div className="max-w-3xl mx-auto">
