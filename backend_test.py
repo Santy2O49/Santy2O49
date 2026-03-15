@@ -173,6 +173,199 @@ class CDLRecruiterAPITester:
         )
         return success
 
+    def test_admin_login(self):
+        """Test admin login with correct credentials"""
+        auth_header = {
+            'Authorization': 'Basic ' + base64.b64encode(b'admin:skillconnect2024').decode('ascii'),
+            'Content-Type': 'application/json'
+        }
+        
+        success, response = self.run_test(
+            "Admin Login",
+            "POST",
+            "admin/login",
+            200,
+            headers=auth_header
+        )
+        
+        if success:
+            self.admin_auth = auth_header
+        return success
+
+    def test_admin_login_invalid(self):
+        """Test admin login with invalid credentials"""
+        auth_header = {
+            'Authorization': 'Basic ' + base64.b64encode(b'admin:wrongpassword').decode('ascii'),
+            'Content-Type': 'application/json'
+        }
+        
+        success, _ = self.run_test(
+            "Admin Login Invalid",
+            "POST",
+            "admin/login",
+            401,
+            headers=auth_header
+        )
+        return success
+
+    def test_admin_stats(self):
+        """Test admin stats endpoint"""
+        if not self.admin_auth:
+            print("❌ Skipping admin stats test - not authenticated")
+            return False
+            
+        return self.run_test(
+            "Admin Stats",
+            "GET",
+            "admin/stats",
+            200,
+            headers=self.admin_auth
+        )
+
+    def test_admin_jobs(self):
+        """Test admin jobs endpoint"""
+        if not self.admin_auth:
+            print("❌ Skipping admin jobs test - not authenticated")
+            return False
+            
+        success, jobs_data = self.run_test(
+            "Admin Jobs",
+            "GET",
+            "admin/jobs",
+            200,
+            headers=self.admin_auth
+        )
+        
+        if success and jobs_data:
+            self.job_ids = [job.get('id') for job in jobs_data if job.get('id')]
+            print(f"   Found {len(self.job_ids)} jobs for tracking tests")
+        
+        return success
+
+    def test_job_view_tracking(self):
+        """Test job view tracking endpoint"""
+        if not self.job_ids:
+            print("❌ Skipping job view tracking test - no job IDs available")
+            return False
+            
+        job_id = self.job_ids[0]
+        return self.run_test(
+            f"Track Job View for {job_id}",
+            "POST",
+            f"jobs/{job_id}/view",
+            200
+        )
+
+    def test_admin_analytics_jobs(self):
+        """Test admin job analytics endpoint"""
+        if not self.admin_auth:
+            print("❌ Skipping admin analytics test - not authenticated")
+            return False
+            
+        return self.run_test(
+            "Admin Job Analytics",
+            "GET",
+            "admin/analytics/jobs",
+            200,
+            headers=self.admin_auth
+        )
+
+    def test_download_leads_csv(self):
+        """Test downloading leads CSV"""
+        if not self.admin_auth:
+            print("❌ Skipping CSV download test - not authenticated")
+            return False
+            
+        url = f"{self.api_url}/admin/leads/download"
+        print(f"\n🔍 Testing Download Leads CSV...")
+        print(f"   URL: {url}")
+        
+        try:
+            response = requests.get(url, headers=self.admin_auth, timeout=10)
+            success = response.status_code == 200
+            
+            self.tests_run += 1
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                print(f"   Content-Type: {response.headers.get('Content-Type', 'N/A')}")
+                print(f"   Content-Length: {len(response.content)} bytes")
+                return True
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                self.failed_tests.append({
+                    'test': 'Download Leads CSV',
+                    'expected': 200,
+                    'actual': response.status_code,
+                    'response': response.text[:200]
+                })
+                return False
+                
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            self.failed_tests.append({
+                'test': 'Download Leads CSV',
+                'error': str(e)
+            })
+            return False
+
+    def test_download_info_requests_csv(self):
+        """Test downloading info requests CSV"""
+        if not self.admin_auth:
+            print("❌ Skipping CSV download test - not authenticated")
+            return False
+            
+        url = f"{self.api_url}/admin/info-requests/download"
+        print(f"\n🔍 Testing Download Info Requests CSV...")
+        print(f"   URL: {url}")
+        
+        try:
+            response = requests.get(url, headers=self.admin_auth, timeout=10)
+            success = response.status_code == 200
+            
+            self.tests_run += 1
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                print(f"   Content-Type: {response.headers.get('Content-Type', 'N/A')}")
+                print(f"   Content-Length: {len(response.content)} bytes")
+                return True
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                self.failed_tests.append({
+                    'test': 'Download Info Requests CSV',
+                    'expected': 200,
+                    'actual': response.status_code,
+                    'response': response.text[:200]
+                })
+                return False
+                
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            self.failed_tests.append({
+                'test': 'Download Info Requests CSV',
+                'error': str(e)
+            })
+            return False
+
+    def test_submit_info_request(self):
+        """Test submitting an info request"""
+        test_request = {
+            "full_name": "Test Info Requester",
+            "phone": "(555) 999-8888",
+            "email": "test.info@example.com",
+            "preferred_contact": "email",
+            "message": "Looking for regional routes with good home time"
+        }
+        
+        return self.run_test(
+            "Submit Info Request",
+            "POST",
+            "info-requests",
+            200,
+            data=test_request
+        )
+
 def main():
     print("🚛 CDL Recruiter API Testing Suite")
     print("=" * 50)
