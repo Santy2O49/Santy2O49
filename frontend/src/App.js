@@ -356,6 +356,10 @@ const Footer = ({ config }) => {
             © {new Date().getFullYear()} {config.site_name}. All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-slate-500 text-sm">
+            <Link to="/admin" className="flex items-center gap-1 hover:text-slate-300 transition-colors">
+              <Lock className="w-3 h-3" />
+              Admin
+            </Link>
             <span>Powered by <strong className="text-slate-400">{config.powered_by_name}</strong></span>
           </div>
         </div>
