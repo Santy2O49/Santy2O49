@@ -207,7 +207,6 @@ async def get_status_checks():
 async def get_site_config():
     config = await db.site_config.find_one({"id": "site_config"}, {"_id": 0})
     if not config:
-        # Create default config
         default_config = SiteConfig()
         await db.site_config.insert_one(default_config.model_dump())
         return default_config.model_dump()
@@ -216,7 +215,6 @@ async def get_site_config():
 # Driver Lead Routes (Public)
 @api_router.post("/leads", response_model=DriverLead)
 async def submit_driver_lead(input: DriverLeadCreate):
-    # Check application limit
     config = await db.site_config.find_one({"id": "site_config"}, {"_id": 0})
     if config:
         if config.get('applications_used', 0) >= config.get('application_limit', 100):
@@ -239,6 +237,13 @@ async def submit_driver_lead(input: DriverLeadCreate):
         upsert=True
     )
     
+    # Increment job application count if job_id provided
+    if input.job_id:
+        await db.job_listings.update_one(
+            {"id": input.job_id},
+            {"$inc": {"applications": 1}}
+        )
+    
     return lead_obj
 
 # Request for Info Routes (Public)
@@ -259,6 +264,11 @@ async def get_job_listings():
     for job in jobs:
         if 'created_at' in job and isinstance(job['created_at'], str):
             job['created_at'] = datetime.fromisoformat(job['created_at'])
+        # Ensure views and applications fields exist
+        if 'views' not in job:
+            job['views'] = 0
+        if 'applications' not in job:
+            job['applications'] = 0
     return jobs
 
 @api_router.get("/jobs/{job_id}", response_model=JobListing)
@@ -269,6 +279,28 @@ async def get_job_by_id(job_id: str):
     if 'created_at' in job and isinstance(job['created_at'], str):
         job['created_at'] = datetime.fromisoformat(job['created_at'])
     return job
+
+# Track job view (Public)
+@api_router.post("/jobs/{job_id}/view")
+async def track_job_view(job_id: str):
+    # Increment view count
+    result = await db.job_listings.update_one(
+        {"id": job_id},
+        {"$inc": {"views": 1}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Log the view
+    view_doc = {
+        "id": str(uuid.uuid4()),
+        "job_id": job_id,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    await db.job_views.insert_one(view_doc)
+    
+    return {"message": "View tracked"}
 
 
 # ============== ADMIN ROUTES ==============
