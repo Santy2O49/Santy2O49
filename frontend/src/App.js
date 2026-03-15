@@ -1765,7 +1765,16 @@ const AdminPage = ({ config, refreshConfig }) => {
 
           {/* Leads Tab */}
           <TabsContent value="leads">
-            <h2 className="font-['Oswald'] text-2xl text-white uppercase mb-6">Driver Leads</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="font-['Oswald'] text-2xl text-white uppercase">Driver Leads</h2>
+              <Button 
+                onClick={() => handleDownloadCSV('leads')} 
+                className="btn-secondary text-green-400 border-green-500/50 hover:border-green-500"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download CSV
+              </Button>
+            </div>
             <Card className="bg-slate-900 border-slate-800">
               <Table>
                 <TableHeader>
