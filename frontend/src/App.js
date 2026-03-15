@@ -1342,6 +1342,7 @@ const AdminPage = ({ config, refreshConfig }) => {
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard">
+            {/* Top Stats Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <Card className="bg-slate-900 border-slate-800">
                 <CardContent className="p-6">
@@ -1379,6 +1380,39 @@ const AdminPage = ({ config, refreshConfig }) => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
+                      <p className="text-slate-400 text-sm">Total Job Views</p>
+                      <p className="text-3xl font-bold text-white">{stats?.total_job_views || 0}</p>
+                      <p className="text-blue-400 text-sm mt-1">
+                        across all jobs
+                      </p>
+                    </div>
+                    <Eye className="w-10 h-10 text-blue-500" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-slate-900 border-slate-800">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-slate-400 text-sm">Job Applications</p>
+                      <p className="text-3xl font-bold text-white">{stats?.total_job_applications || 0}</p>
+                      <p className="text-green-400 text-sm mt-1">
+                        from job listings
+                      </p>
+                    </div>
+                    <Target className="w-10 h-10 text-green-500" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Second Row - More Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <Card className="bg-slate-900 border-slate-800">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
                       <p className="text-slate-400 text-sm">Info Requests</p>
                       <p className="text-3xl font-bold text-white">{stats?.info_requests || 0}</p>
                       <p className="text-amber-400 text-sm mt-1">
@@ -1404,15 +1438,110 @@ const AdminPage = ({ config, refreshConfig }) => {
                   </div>
                 </CardContent>
               </Card>
+
+              <Card className="bg-slate-900 border-slate-800">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-slate-400 text-sm">Conversion Rate</p>
+                      <p className="text-3xl font-bold text-white">
+                        {stats?.total_job_views > 0 
+                          ? ((stats?.total_job_applications / stats?.total_job_views) * 100).toFixed(1)
+                          : 0}%
+                      </p>
+                      <p className="text-blue-400 text-sm mt-1">
+                        views to applications
+                      </p>
+                    </div>
+                    <TrendingUp className="w-10 h-10 text-cyan-500" />
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
-            <div className="flex gap-4">
+            {/* Job Performance Table */}
+            <Card className="bg-slate-900 border-slate-800 mb-8">
+              <CardHeader>
+                <CardTitle className="text-white font-['Oswald'] uppercase flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-blue-500" />
+                  Job Performance Analytics
+                </CardTitle>
+                <CardDescription className="text-slate-400">
+                  Track views and applications for each job listing
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-slate-800">
+                      <TableHead className="text-slate-400">Job Title</TableHead>
+                      <TableHead className="text-slate-400 text-center">Views</TableHead>
+                      <TableHead className="text-slate-400 text-center">Applications</TableHead>
+                      <TableHead className="text-slate-400 text-center">Conversion</TableHead>
+                      <TableHead className="text-slate-400">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {jobs.map((job) => {
+                      const views = job.views || 0;
+                      const apps = job.applications || 0;
+                      const conversion = views > 0 ? ((apps / views) * 100).toFixed(1) : 0;
+                      return (
+                        <TableRow key={job.id} className="border-slate-800">
+                          <TableCell className="text-white font-medium">{job.title}</TableCell>
+                          <TableCell className="text-center">
+                            <span className="flex items-center justify-center gap-1 text-blue-400">
+                              <Eye className="w-4 h-4" />
+                              {views}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <span className="flex items-center justify-center gap-1 text-green-400">
+                              <MousePointerClick className="w-4 h-4" />
+                              {apps}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center gap-2">
+                              <Progress value={Number(conversion)} className="w-16 h-2" />
+                              <span className="text-slate-300 text-sm">{conversion}%</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={job.is_active ? "bg-green-600" : "bg-slate-600"}>
+                              {job.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {/* Actions Row */}
+            <div className="flex flex-wrap gap-4">
               <Button onClick={fetchData} disabled={isLoading} className="btn-secondary">
                 <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                 Refresh Data
               </Button>
               <Button onClick={handleResetCounter} className="btn-secondary text-amber-400 border-amber-500/50 hover:border-amber-500">
                 Reset Application Counter
+              </Button>
+              <Button 
+                onClick={() => handleDownloadCSV('leads')} 
+                className="btn-secondary text-green-400 border-green-500/50 hover:border-green-500"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download Leads CSV
+              </Button>
+              <Button 
+                onClick={() => handleDownloadCSV('info-requests')} 
+                className="btn-secondary text-cyan-400 border-cyan-500/50 hover:border-cyan-500"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download Info Requests CSV
               </Button>
             </div>
           </TabsContent>
