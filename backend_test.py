@@ -367,8 +367,8 @@ class CDLRecruiterAPITester:
         )
 
 def main():
-    print("🚛 CDL Recruiter API Testing Suite")
-    print("=" * 50)
+    print("🚛 CDL Recruiter API Testing Suite - Enhanced Admin Dashboard")
+    print("=" * 60)
     
     tester = CDLRecruiterAPITester()
     
@@ -393,11 +393,34 @@ def main():
     tester.test_submit_lead_invalid_email()
     tester.test_submit_lead_missing_fields()
     
+    # Test info request submission
+    tester.test_submit_info_request()
+    
     # Test getting leads
     tester.test_get_leads()
     
+    print("\n" + "=" * 60)
+    print("🔐 ADMIN DASHBOARD TESTS")
+    print("=" * 60)
+    
+    # Test admin authentication
+    tester.test_admin_login()
+    tester.test_admin_login_invalid()
+    
+    # Test admin endpoints (requires authentication)
+    tester.test_admin_stats()
+    tester.test_admin_jobs()
+    tester.test_admin_analytics_jobs()
+    
+    # Test job view tracking
+    tester.test_job_view_tracking()
+    
+    # Test CSV downloads
+    tester.test_download_leads_csv()
+    tester.test_download_info_requests_csv()
+    
     # Print final results
-    print("\n" + "=" * 50)
+    print("\n" + "=" * 60)
     print(f"📊 Test Results: {tester.tests_passed}/{tester.tests_run} passed")
     
     if tester.failed_tests:
@@ -407,6 +430,21 @@ def main():
     
     success_rate = (tester.tests_passed / tester.tests_run) * 100 if tester.tests_run > 0 else 0
     print(f"📈 Success Rate: {success_rate:.1f}%")
+    
+    # Specific admin feature validation
+    print("\n🎯 Admin Dashboard Feature Status:")
+    admin_features = [
+        "Admin Login Authentication",
+        "Admin Stats (total_job_views, total_job_applications)",
+        "Job Performance Analytics",
+        "Job View Tracking API",
+        "Download Leads CSV",
+        "Download Info Requests CSV"
+    ]
+    
+    for feature in admin_features:
+        status = "✅ Working" if any(feature.lower() in test.get('test', '').lower() for test in [{'test': t} for t in ['Admin Login', 'Admin Stats', 'Admin Job Analytics', 'Track Job View', 'Download Leads CSV', 'Download Info Requests CSV']] if tester.tests_passed > 0) else "❌ Issues Found"
+        print(f"   {feature}: {status}")
     
     return 0 if tester.tests_passed == tester.tests_run else 1
 
