@@ -1699,7 +1699,8 @@ const AdminPage = ({ config, refreshConfig }) => {
                     <TableHead className="text-slate-400">Title</TableHead>
                     <TableHead className="text-slate-400">Location</TableHead>
                     <TableHead className="text-slate-400">Pay</TableHead>
-                    <TableHead className="text-slate-400">Type</TableHead>
+                    <TableHead className="text-slate-400 text-center">Views</TableHead>
+                    <TableHead className="text-slate-400 text-center">Apps</TableHead>
                     <TableHead className="text-slate-400">Status</TableHead>
                     <TableHead className="text-slate-400 text-right">Actions</TableHead>
                   </TableRow>
@@ -1710,7 +1711,18 @@ const AdminPage = ({ config, refreshConfig }) => {
                       <TableCell className="text-white font-medium">{job.title}</TableCell>
                       <TableCell className="text-slate-400">{job.location}</TableCell>
                       <TableCell className="text-green-400">{job.pay}</TableCell>
-                      <TableCell className="text-slate-400">{job.job_type}</TableCell>
+                      <TableCell className="text-center">
+                        <span className="text-blue-400 flex items-center justify-center gap-1">
+                          <Eye className="w-3 h-3" />
+                          {job.views || 0}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="text-green-400 flex items-center justify-center gap-1">
+                          <MousePointerClick className="w-3 h-3" />
+                          {job.applications || 0}
+                        </span>
+                      </TableCell>
                       <TableCell>
                         <Badge variant={job.is_active ? "default" : "secondary"} className={job.is_active ? "bg-green-600" : "bg-slate-600"}>
                           {job.is_active ? 'Active' : 'Inactive'}
