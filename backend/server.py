@@ -1,11 +1,14 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 import secrets
+import csv
+import io
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
@@ -86,6 +89,8 @@ class DriverLeadCreate(BaseModel):
     email: EmailStr
     cdl_experience: int
     zip_code: str
+    job_id: Optional[str] = None
+    job_title: Optional[str] = None
 
 class DriverLead(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -96,6 +101,8 @@ class DriverLead(BaseModel):
     email: str
     cdl_experience: int
     zip_code: str
+    job_id: Optional[str] = None
+    job_title: Optional[str] = None
     status: str = "new"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -104,7 +111,7 @@ class InfoRequestCreate(BaseModel):
     full_name: str
     phone: str
     email: EmailStr
-    preferred_contact: str = "phone"  # phone, email, either
+    preferred_contact: str = "phone"
     message: Optional[str] = None
     resume_url: Optional[str] = None
 
@@ -154,7 +161,18 @@ class JobListing(BaseModel):
     requirements: List[str]
     benefits: List[str]
     is_active: bool = True
+    views: int = 0
+    applications: int = 0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# Job View Tracking Model
+class JobView(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    job_id: str
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    ip_hash: Optional[str] = None
 
 
 # ============== PUBLIC ROUTES ==============
