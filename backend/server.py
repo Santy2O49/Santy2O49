@@ -317,7 +317,7 @@ async def update_site_config(updates: SiteConfigUpdate, username: str = Depends(
     if not update_data:
         raise HTTPException(status_code=400, detail="No updates provided")
     
-    result = await db.site_config.update_one(
+    await db.site_config.update_one(
         {"id": "site_config"},
         {"$set": update_data},
         upsert=True
