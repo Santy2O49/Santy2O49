@@ -342,6 +342,10 @@ async def admin_get_all_jobs(username: str = Depends(verify_admin)):
     for job in jobs:
         if 'created_at' in job and isinstance(job['created_at'], str):
             job['created_at'] = datetime.fromisoformat(job['created_at'])
+        if 'views' not in job:
+            job['views'] = 0
+        if 'applications' not in job:
+            job['applications'] = 0
     return jobs
 
 @api_router.post("/admin/jobs", response_model=JobListing)
@@ -350,6 +354,8 @@ async def admin_create_job(job: JobListingCreate, username: str = Depends(verify
     
     doc = job_obj.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
+    doc['views'] = 0
+    doc['applications'] = 0
     
     await db.job_listings.insert_one(doc)
     return job_obj
@@ -380,6 +386,17 @@ async def admin_delete_job(job_id: str, username: str = Depends(verify_admin)):
         raise HTTPException(status_code=404, detail="Job not found")
     return {"message": "Job deleted successfully"}
 
+# Reset job stats
+@api_router.post("/admin/jobs/{job_id}/reset-stats")
+async def admin_reset_job_stats(job_id: str, username: str = Depends(verify_admin)):
+    result = await db.job_listings.update_one(
+        {"id": job_id},
+        {"$set": {"views": 0, "applications": 0}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return {"message": "Job stats reset"}
+
 # Admin - Lead Management
 @api_router.get("/admin/leads")
 async def admin_get_leads(username: str = Depends(verify_admin)):
@@ -405,6 +422,67 @@ async def admin_delete_lead(lead_id: str, username: str = Depends(verify_admin))
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Lead not found")
     return {"message": "Lead deleted successfully"}
+
+# Download leads as CSV
+@api_router.get("/admin/leads/download")
+async def admin_download_leads(username: str = Depends(verify_admin)):
+    leads = await db.driver_leads.find({}, {"_id": 0}).to_list(10000)
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Header
+    writer.writerow(['Name', 'Phone', 'Email', 'CDL Experience (Years)', 'Zip Code', 'Job Applied', 'Status', 'Date'])
+    
+    for lead in leads:
+        writer.writerow([
+            lead.get('full_name', ''),
+            lead.get('phone', ''),
+            lead.get('email', ''),
+            lead.get('cdl_experience', ''),
+            lead.get('zip_code', ''),
+            lead.get('job_title', 'General Application'),
+            lead.get('status', 'new'),
+            lead.get('created_at', '')
+        ])
+    
+    output.seek(0)
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=leads_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"}
+    )
+
+# Download info requests as CSV
+@api_router.get("/admin/info-requests/download")
+async def admin_download_info_requests(username: str = Depends(verify_admin)):
+    requests = await db.info_requests.find({}, {"_id": 0}).to_list(10000)
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Header
+    writer.writerow(['Name', 'Phone', 'Email', 'Preferred Contact', 'Message', 'Status', 'Date'])
+    
+    for req in requests:
+        writer.writerow([
+            req.get('full_name', ''),
+            req.get('phone', ''),
+            req.get('email', ''),
+            req.get('preferred_contact', ''),
+            req.get('message', ''),
+            req.get('status', 'pending'),
+            req.get('created_at', '')
+        ])
+    
+    output.seek(0)
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=info_requests_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"}
+    )
 
 # Admin - Info Requests Management
 @api_router.get("/admin/info-requests")
@@ -436,6 +514,18 @@ async def admin_get_stats(username: str = Depends(verify_admin)):
     active_jobs_count = await db.job_listings.count_documents({"is_active": True})
     total_jobs_count = await db.job_listings.count_documents({})
     
+    # Get total views and applications across all jobs
+    pipeline = [
+        {"$group": {
+            "_id": None,
+            "total_views": {"$sum": {"$ifNull": ["$views", 0]}},
+            "total_applications": {"$sum": {"$ifNull": ["$applications", 0]}}
+        }}
+    ]
+    totals = await db.job_listings.aggregate(pipeline).to_list(1)
+    total_views = totals[0]['total_views'] if totals else 0
+    total_job_applications = totals[0]['total_applications'] if totals else 0
+    
     return {
         "applications_used": config.get('applications_used', 0) if config else 0,
         "application_limit": config.get('application_limit', 100) if config else 100,
@@ -445,8 +535,28 @@ async def admin_get_stats(username: str = Depends(verify_admin)):
         "info_requests": info_requests_count,
         "pending_requests": pending_requests,
         "active_jobs": active_jobs_count,
-        "total_jobs": total_jobs_count
+        "total_jobs": total_jobs_count,
+        "total_job_views": total_views,
+        "total_job_applications": total_job_applications
     }
+
+# Admin - Job Analytics
+@api_router.get("/admin/analytics/jobs")
+async def admin_get_job_analytics(username: str = Depends(verify_admin)):
+    jobs = await db.job_listings.find({}, {"_id": 0, "id": 1, "title": 1, "views": 1, "applications": 1, "is_active": 1}).to_list(100)
+    
+    for job in jobs:
+        if 'views' not in job:
+            job['views'] = 0
+        if 'applications' not in job:
+            job['applications'] = 0
+        # Calculate conversion rate
+        if job['views'] > 0:
+            job['conversion_rate'] = round((job['applications'] / job['views']) * 100, 1)
+        else:
+            job['conversion_rate'] = 0
+    
+    return jobs
 
 # Seed initial data
 @api_router.post("/admin/seed")
