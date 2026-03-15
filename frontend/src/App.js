@@ -1222,6 +1222,29 @@ const AdminPage = ({ config, refreshConfig }) => {
     }
   };
 
+  const handleDownloadCSV = async (type) => {
+    try {
+      const response = await axios.get(`${API}/admin/${type}/download`, {
+        ...getAuthHeader(),
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${type}_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`${type === 'leads' ? 'Leads' : 'Info Requests'} downloaded!`);
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error("Failed to download CSV");
+    }
+  };
+
   // Login Screen
   if (!isAuthenticated) {
     return (
