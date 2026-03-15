@@ -561,13 +561,11 @@ async def admin_get_job_analytics(username: str = Depends(verify_admin)):
 # Seed initial data
 @api_router.post("/admin/seed")
 async def seed_initial_data(username: str = Depends(verify_admin)):
-    # Seed site config
     existing_config = await db.site_config.find_one({"id": "site_config"})
     if not existing_config:
         default_config = SiteConfig()
         await db.site_config.insert_one(default_config.model_dump())
     
-    # Seed jobs
     jobs_count = await db.job_listings.count_documents({})
     if jobs_count == 0:
         jobs = [
@@ -581,6 +579,8 @@ async def seed_initial_data(username: str = Depends(verify_admin)):
                 "requirements": ["Valid CDL-A", "2+ years experience", "Clean MVR", "No DUI/DWI"],
                 "benefits": ["Health Insurance", "401k Match", "Paid Time Off", "Weekly Pay"],
                 "is_active": True,
+                "views": 0,
+                "applications": 0,
                 "created_at": datetime.now(timezone.utc).isoformat()
             },
             {
@@ -593,6 +593,8 @@ async def seed_initial_data(username: str = Depends(verify_admin)):
                 "requirements": ["Valid CDL-A", "1+ year flatbed experience", "Tarping experience", "Clean record"],
                 "benefits": ["Weekly Home Time", "Medical/Dental/Vision", "Bonus Programs", "Modern Equipment"],
                 "is_active": True,
+                "views": 0,
+                "applications": 0,
                 "created_at": datetime.now(timezone.utc).isoformat()
             },
             {
@@ -605,6 +607,8 @@ async def seed_initial_data(username: str = Depends(verify_admin)):
                 "requirements": ["Valid CDL-A", "6+ months experience", "TWIC Card preferred", "Doubles endorsement a plus"],
                 "benefits": ["Guaranteed Pay", "Fuel Cards", "Rider Program", "Pet Friendly"],
                 "is_active": True,
+                "views": 0,
+                "applications": 0,
                 "created_at": datetime.now(timezone.utc).isoformat()
             },
             {
@@ -617,6 +621,8 @@ async def seed_initial_data(username: str = Depends(verify_admin)):
                 "requirements": ["Valid CDL-A", "1+ year experience", "Touch freight capability", "Customer service skills"],
                 "benefits": ["Home Daily", "Overtime Available", "Benefits Day 1", "Union Position"],
                 "is_active": True,
+                "views": 0,
+                "applications": 0,
                 "created_at": datetime.now(timezone.utc).isoformat()
             },
             {
@@ -629,6 +635,8 @@ async def seed_initial_data(username: str = Depends(verify_admin)):
                 "requirements": ["Valid CDL-A", "Team experience preferred", "Hazmat endorsement", "Clean background"],
                 "benefits": ["Top Miles", "Sign-on Bonus", "Referral Bonus", "Quarterly Safety Bonus"],
                 "is_active": True,
+                "views": 0,
+                "applications": 0,
                 "created_at": datetime.now(timezone.utc).isoformat()
             },
             {
@@ -641,6 +649,8 @@ async def seed_initial_data(username: str = Depends(verify_admin)):
                 "requirements": ["Valid CDL-A", "Reefer experience", "Food-grade hauling knowledge", "Temp management skills"],
                 "benefits": ["New Equipment", "Weekly Home Time", "Direct Deposit", "Rider Policy"],
                 "is_active": True,
+                "views": 0,
+                "applications": 0,
                 "created_at": datetime.now(timezone.utc).isoformat()
             }
         ]
@@ -664,6 +674,8 @@ async def seed_job_listings():
                 "requirements": ["Valid CDL-A", "2+ years experience", "Clean MVR", "No DUI/DWI"],
                 "benefits": ["Health Insurance", "401k Match", "Paid Time Off", "Weekly Pay"],
                 "is_active": True,
+                "views": 0,
+                "applications": 0,
                 "created_at": datetime.now(timezone.utc).isoformat()
             },
             {
@@ -676,6 +688,8 @@ async def seed_job_listings():
                 "requirements": ["Valid CDL-A", "1+ year flatbed experience", "Tarping experience", "Clean record"],
                 "benefits": ["Weekly Home Time", "Medical/Dental/Vision", "Bonus Programs", "Modern Equipment"],
                 "is_active": True,
+                "views": 0,
+                "applications": 0,
                 "created_at": datetime.now(timezone.utc).isoformat()
             },
             {
@@ -688,6 +702,8 @@ async def seed_job_listings():
                 "requirements": ["Valid CDL-A", "6+ months experience", "TWIC Card preferred", "Doubles endorsement a plus"],
                 "benefits": ["Guaranteed Pay", "Fuel Cards", "Rider Program", "Pet Friendly"],
                 "is_active": True,
+                "views": 0,
+                "applications": 0,
                 "created_at": datetime.now(timezone.utc).isoformat()
             },
             {
@@ -700,6 +716,8 @@ async def seed_job_listings():
                 "requirements": ["Valid CDL-A", "1+ year experience", "Touch freight capability", "Customer service skills"],
                 "benefits": ["Home Daily", "Overtime Available", "Benefits Day 1", "Union Position"],
                 "is_active": True,
+                "views": 0,
+                "applications": 0,
                 "created_at": datetime.now(timezone.utc).isoformat()
             },
             {
@@ -712,6 +730,8 @@ async def seed_job_listings():
                 "requirements": ["Valid CDL-A", "Team experience preferred", "Hazmat endorsement", "Clean background"],
                 "benefits": ["Top Miles", "Sign-on Bonus", "Referral Bonus", "Quarterly Safety Bonus"],
                 "is_active": True,
+                "views": 0,
+                "applications": 0,
                 "created_at": datetime.now(timezone.utc).isoformat()
             },
             {
@@ -724,6 +744,8 @@ async def seed_job_listings():
                 "requirements": ["Valid CDL-A", "Reefer experience", "Food-grade hauling knowledge", "Temp management skills"],
                 "benefits": ["New Equipment", "Weekly Home Time", "Direct Deposit", "Rider Policy"],
                 "is_active": True,
+                "views": 0,
+                "applications": 0,
                 "created_at": datetime.now(timezone.utc).isoformat()
             }
         ]
