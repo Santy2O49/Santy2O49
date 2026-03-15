@@ -2,6 +2,7 @@ import requests
 import sys
 import json
 from datetime import datetime
+import base64
 
 class CDLRecruiterAPITester:
     def __init__(self, base_url="https://driver-career-hub.preview.emergentagent.com"):
@@ -10,6 +11,8 @@ class CDLRecruiterAPITester:
         self.tests_run = 0
         self.tests_passed = 0
         self.failed_tests = []
+        self.admin_auth = None
+        self.job_ids = []
 
     def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
         """Run a single API test"""
