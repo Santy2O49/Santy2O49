@@ -528,6 +528,18 @@ const BenefitsSection = () => {
 
 // Jobs Section
 const JobsSection = ({ jobs, config }) => {
+  const [selectedJob, setSelectedJob] = useState(null);
+
+  const handleJobClick = async (job) => {
+    setSelectedJob(job);
+    // Track job view
+    try {
+      await axios.post(`${API}/jobs/${job.id}/view`);
+    } catch (error) {
+      console.log('View tracking failed:', error);
+    }
+  };
+
   return (
     <section id="jobs" data-testid="jobs-section" className="section-container bg-slate-900/50" aria-labelledby="jobs-heading">
       <div className="max-w-7xl mx-auto">
@@ -544,13 +556,14 @@ const JobsSection = ({ jobs, config }) => {
           {jobs.map((job, index) =>
           <article
             key={job.id || index}
-            className="job-card"
+            className="job-card cursor-pointer hover:border-blue-500/50 transition-all"
             data-testid={`job-card-${index}`}
             role="listitem"
             itemScope
-            itemType="https://schema.org/JobPosting">
+            itemType="https://schema.org/JobPosting"
+            onClick={() => handleJobClick(job)}>
 
-              <Card>
+              <Card className="h-full">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-xs uppercase tracking-wider text-blue-400 font-semibold bg-blue-500/10 px-3 py-1 rounded" itemProp="employmentType">
@@ -575,17 +588,12 @@ const JobsSection = ({ jobs, config }) => {
                   <p className="text-slate-400 text-sm mb-4 line-clamp-2" itemProp="description">
                     {job.description}
                   </p>
-                  <a
-                  href={config.quick_app_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center text-blue-400 hover:text-blue-300 font-medium text-sm transition-colors"
-                  data-testid={`job-apply-btn-${index}`}
-                  aria-label={`Apply for ${job.title} position`}>
-
-                    Apply for this position
-                    <ChevronRight className="w-4 h-4 ml-1" aria-hidden="true" />
-                  </a>
+                  <div className="flex items-center justify-between">
+                    <span className="text-blue-400 text-sm font-medium flex items-center gap-1">
+                      Click to view details
+                      <ChevronRight className="w-4 h-4" />
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
             </article>
@@ -618,6 +626,101 @@ const JobsSection = ({ jobs, config }) => {
           </div>
         </div>
       </div>
+
+      {/* Job Detail Modal */}
+      <Dialog open={!!selectedJob} onOpenChange={() => setSelectedJob(null)}>
+        <DialogContent className="bg-slate-900 border-slate-700 max-w-2xl max-h-[90vh] overflow-y-auto">
+          {selectedJob && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-xs uppercase tracking-wider text-blue-400 font-semibold bg-blue-500/10 px-3 py-1 rounded">
+                    {selectedJob.job_type}
+                  </span>
+                </div>
+                <DialogTitle className="font-['Oswald'] text-2xl md:text-3xl font-bold text-white uppercase">
+                  {selectedJob.title}
+                </DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-6 py-4">
+                {/* Location & Pay */}
+                <div className="flex flex-wrap gap-6">
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <MapPin className="w-5 h-5 text-blue-500" />
+                    <span className="font-medium">{selectedJob.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-green-500" />
+                    <span className="text-green-400 font-bold text-lg">{selectedJob.pay}</span>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <h4 className="font-['Oswald'] text-lg font-bold text-white uppercase mb-3">
+                    Job Description
+                  </h4>
+                  <p className="text-slate-300 leading-relaxed">
+                    {selectedJob.description}
+                  </p>
+                </div>
+
+                {/* Requirements */}
+                {selectedJob.requirements && selectedJob.requirements.length > 0 && (
+                  <div>
+                    <h4 className="font-['Oswald'] text-lg font-bold text-white uppercase mb-3">
+                      Requirements
+                    </h4>
+                    <ul className="space-y-2">
+                      {selectedJob.requirements.map((req, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-slate-300">
+                          <CheckCircle className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <span>{req}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Benefits */}
+                {selectedJob.benefits && selectedJob.benefits.length > 0 && (
+                  <div>
+                    <h4 className="font-['Oswald'] text-lg font-bold text-white uppercase mb-3">
+                      Benefits
+                    </h4>
+                    <ul className="space-y-2">
+                      {selectedJob.benefits.map((benefit, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-slate-300">
+                          <Award className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                          <span>{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              <DialogFooter className="flex-col sm:flex-row gap-3">
+                <Button variant="ghost" onClick={() => setSelectedJob(null)} className="text-slate-400">
+                  Close
+                </Button>
+                <a
+                  href={config.quick_app_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto"
+                >
+                  <Button className="btn-accent w-full">
+                    Apply for This Position
+                    <ExternalLink className="w-4 h-4 ml-2" />
+                  </Button>
+                </a>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>);
 
 };
