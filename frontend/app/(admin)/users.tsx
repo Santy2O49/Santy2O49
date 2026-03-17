@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Dimensions,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,11 +17,17 @@ import { User, UserRole } from '../../src/types';
 import { Card } from '../../src/components/Card';
 import { Button } from '../../src/components/Button';
 import api from '../../src/api/client';
+import { t } from '../../src/i18n/translations';
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<string>('all');
+  const [blockingUserId, setBlockingUserId] = useState<string | null>(null);
+  const [verifyingUserId, setVerifyingUserId] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -41,31 +49,37 @@ export default function AdminUsers() {
   };
 
   const handleVerify = async (userId: string) => {
+    setVerifyingUserId(userId);
     try {
       await api.put(`/users/${userId}/verify`);
-      fetchUsers();
-      Alert.alert('Éxito', 'Usuario verificado');
+      await fetchUsers();
+      Alert.alert('Success', 'User verified successfully');
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'No se pudo verificar');
+      Alert.alert('Error', error.response?.data?.detail || 'Could not verify user');
+    } finally {
+      setVerifyingUserId(null);
     }
   };
 
   const handleBlock = async (userId: string) => {
     Alert.alert(
-      'Bloquear Usuario',
-      '¿Estás seguro de bloquear este usuario?',
+      t('block'),
+      'Are you sure you want to block this user?',
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Bloquear',
+          text: t('block'),
           style: 'destructive',
           onPress: async () => {
+            setBlockingUserId(userId);
             try {
               await api.put(`/users/${userId}/block`);
-              fetchUsers();
-              Alert.alert('Éxito', 'Usuario bloqueado');
+              await fetchUsers();
+              Alert.alert('Success', 'User blocked successfully');
             } catch (error: any) {
-              Alert.alert('Error', error.response?.data?.detail || 'No se pudo bloquear');
+              Alert.alert('Error', error.response?.data?.detail || 'Could not block user');
+            } finally {
+              setBlockingUserId(null);
             }
           },
         },
@@ -79,10 +93,10 @@ export default function AdminUsers() {
   });
 
   const filters = [
-    { key: 'all', label: 'Todos' },
-    { key: 'customer', label: 'Clientes' },
-    { key: 'contractor', label: 'Proveedores' },
-    { key: 'admin', label: 'Admins' },
+    { key: 'all', label: t('all') },
+    { key: 'customer', label: t('clients') },
+    { key: 'contractor', label: t('providers') },
+    { key: 'admin', label: t('admin') },
   ];
 
   const getRoleColor = (role: string) => {
@@ -97,8 +111,8 @@ export default function AdminUsers() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Gestión de Usuarios</Text>
-        <Text style={styles.subtitle}>{users.length} usuarios totales</Text>
+        <Text style={styles.title}>{t('userManagement')}</Text>
+        <Text style={styles.subtitle}>{users.length} {t('totalUsersCount')}</Text>
       </View>
 
       {/* Filters */}
@@ -176,19 +190,26 @@ export default function AdminUsers() {
               <View style={styles.userActions}>
                 {user.role === 'contractor' && !user.is_verified && (
                   <Button
-                    title="Verificar"
+                    title={t('verify')}
                     variant="success"
                     onPress={() => handleVerify(user.id)}
+                    loading={verifyingUserId === user.id}
                     style={styles.actionBtn}
                   />
                 )}
-                {!user.is_blocked && (
+                {!user.is_blocked ? (
                   <Button
-                    title="Bloquear"
+                    title={t('block')}
                     variant="danger"
                     onPress={() => handleBlock(user.id)}
+                    loading={blockingUserId === user.id}
                     style={styles.actionBtn}
                   />
+                ) : (
+                  <View style={styles.blockedBadge}>
+                    <Ionicons name="ban" size={16} color="#dc2626" />
+                    <Text style={styles.blockedText}>{t('blocked')}</Text>
+                  </View>
                 )}
               </View>
             )}
@@ -312,5 +333,19 @@ const styles = StyleSheet.create({
   actionBtn: {
     flex: 1,
     paddingVertical: 10,
+  },
+  blockedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+    paddingVertical: 10,
+    backgroundColor: '#fef2f2',
+    borderRadius: 8,
+    gap: 6,
+  },
+  blockedText: {
+    color: '#dc2626',
+    fontWeight: '600',
   },
 });

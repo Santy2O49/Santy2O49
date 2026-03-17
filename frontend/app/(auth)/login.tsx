@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,12 +16,15 @@ import { useAuthStore } from '../../src/store/authStore';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
 import { UserRole } from '../../src/types';
+import { t } from '../../src/i18n/translations';
 
 export default function LoginScreen() {
   const router = useRouter();
   const { login, isLoading, error, clearError } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [adminTapCount, setAdminTapCount] = useState(0);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -48,20 +52,32 @@ export default function LoginScreen() {
   };
 
   const quickLogin = async (role: string) => {
-    let email = '';
+    let loginEmail = '';
     switch (role) {
       case 'customer':
-        email = 'customer1@hammr.com';
+        loginEmail = 'customer1@hammr.com';
         break;
       case 'contractor':
-        email = 'contractor1@hammr.com';
+        loginEmail = 'contractor1@hammr.com';
         break;
       case 'admin':
-        email = 'admin@hammr.com';
+        loginEmail = 'admin@hammr.com';
         break;
     }
-    setEmail(email);
+    setEmail(loginEmail);
     setPassword(role === 'admin' ? 'admin123' : 'password123');
+  };
+
+  // Secret admin access - tap 5 times on copyright
+  const handleCopyrightTap = () => {
+    const newCount = adminTapCount + 1;
+    setAdminTapCount(newCount);
+    if (newCount >= 5) {
+      setShowAdminLogin(true);
+      setAdminTapCount(0);
+    }
+    // Reset after 3 seconds if not completed
+    setTimeout(() => setAdminTapCount(0), 3000);
   };
 
   return (
@@ -76,12 +92,12 @@ export default function LoginScreen() {
         >
           <View style={styles.header}>
             <Text style={styles.logo}>HAMMR</Text>
-            <Text style={styles.subtitle}>Iniciar Sesión</Text>
+            <Text style={styles.subtitle}>{t('login')}</Text>
           </View>
 
           <View style={styles.form}>
             <Input
-              label="Email"
+              label={t('email')}
               value={email}
               onChangeText={setEmail}
               placeholder="tu@email.com"
@@ -89,7 +105,7 @@ export default function LoginScreen() {
               autoCapitalize="none"
             />
             <Input
-              label="Contraseña"
+              label={t('password')}
               value={password}
               onChangeText={setPassword}
               placeholder="••••••••"
@@ -101,7 +117,7 @@ export default function LoginScreen() {
             )}
 
             <Button
-              title="Iniciar Sesión"
+              title={t('login')}
               onPress={handleLogin}
               loading={isLoading}
               style={styles.loginButton}
@@ -112,34 +128,48 @@ export default function LoginScreen() {
               style={styles.registerLink}
             >
               <Text style={styles.registerText}>
-                ¿No tienes cuenta? <Text style={styles.registerBold}>Regístrate</Text>
+                {t('noAccount')} <Text style={styles.registerBold}>{t('signUp')}</Text>
               </Text>
             </TouchableOpacity>
           </View>
 
-          {/* Quick Login Buttons for Demo */}
+          {/* Demo Quick Login Buttons - Only Customer and Contractor */}
           <View style={styles.demoSection}>
-            <Text style={styles.demoTitle}>Demo - Acceso Rápido:</Text>
+            <Text style={styles.demoTitle}>Demo - {t('home')}:</Text>
             <View style={styles.demoButtons}>
               <TouchableOpacity
                 style={[styles.demoButton, { backgroundColor: '#16a34a' }]}
                 onPress={() => quickLogin('customer')}
               >
-                <Text style={styles.demoButtonText}>Cliente</Text>
+                <Text style={styles.demoButtonText}>{t('customer')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.demoButton, { backgroundColor: '#2563eb' }]}
                 onPress={() => quickLogin('contractor')}
               >
-                <Text style={styles.demoButtonText}>Proveedor</Text>
+                <Text style={styles.demoButtonText}>{t('contractor')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.demoButton, { backgroundColor: '#dc2626' }]}
-                onPress={() => quickLogin('admin')}
-              >
-                <Text style={styles.demoButtonText}>Admin</Text>
-              </TouchableOpacity>
+              {showAdminLogin && (
+                <TouchableOpacity
+                  style={[styles.demoButton, { backgroundColor: '#dc2626' }]}
+                  onPress={() => quickLogin('admin')}
+                >
+                  <Text style={styles.demoButtonText}>{t('admin')}</Text>
+                </TouchableOpacity>
+              )}
             </View>
+          </View>
+
+          {/* Footer with secret admin access */}
+          <View style={styles.footer}>
+            <Pressable onPress={handleCopyrightTap}>
+              <Text style={styles.copyright}>{t('allRightsReserved')}</Text>
+            </Pressable>
+            {showAdminLogin && (
+              <TouchableOpacity onPress={() => quickLogin('admin')}>
+                <Text style={styles.adminLink}>Admin Access</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -219,16 +249,33 @@ const styles = StyleSheet.create({
   },
   demoButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
+    gap: 12,
   },
   demoButton: {
     paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     borderRadius: 8,
   },
   demoButtonText: {
     color: '#ffffff',
     fontWeight: '600',
+    fontSize: 13,
+  },
+  footer: {
+    marginTop: 'auto',
+    paddingTop: 24,
+    alignItems: 'center',
+  },
+  copyright: {
+    color: '#9ca3af',
     fontSize: 12,
+    textAlign: 'center',
+  },
+  adminLink: {
+    color: '#64748b',
+    fontSize: 11,
+    marginTop: 8,
+    textDecorationLine: 'underline',
   },
 });

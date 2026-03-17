@@ -7,6 +7,7 @@ import {
   RefreshControl,
   TouchableOpacity,
   Alert,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -15,6 +16,9 @@ import { useAuthStore } from '../../src/store/authStore';
 import { FinanceSummary, User, Job } from '../../src/types';
 import { Card } from '../../src/components/Card';
 import api from '../../src/api/client';
+import { t } from '../../src/i18n/translations';
+
+const { width } = Dimensions.get('window');
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -50,10 +54,10 @@ export default function AdminDashboard() {
   };
 
   const handleLogout = () => {
-    Alert.alert('Cerrar Sesión', '¿Estás seguro?', [
-      { text: 'Cancelar', style: 'cancel' },
+    Alert.alert(t('logout'), t('logoutConfirm'), [
+      { text: t('cancel'), style: 'cancel' },
       {
-        text: 'Salir',
+        text: t('yes'),
         style: 'destructive',
         onPress: () => {
           logout();
@@ -65,28 +69,28 @@ export default function AdminDashboard() {
 
   const stats = [
     {
-      title: 'Total Usuarios',
+      title: t('totalUsers'),
       value: users.length,
       icon: 'people',
       color: '#2563eb',
       bgColor: '#eff6ff',
     },
     {
-      title: 'Proveedores',
+      title: t('providers'),
       value: users.filter(u => u.role === 'contractor').length,
       icon: 'construct',
       color: '#16a34a',
       bgColor: '#dcfce7',
     },
     {
-      title: 'Clientes',
+      title: t('clients'),
       value: users.filter(u => u.role === 'customer').length,
       icon: 'person',
       color: '#f59e0b',
       bgColor: '#fef3c7',
     },
     {
-      title: 'Total Trabajos',
+      title: t('totalJobs'),
       value: finance?.total_jobs || 0,
       icon: 'briefcase',
       color: '#8b5cf6',
@@ -105,8 +109,8 @@ export default function AdminDashboard() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>Admin Panel</Text>
-            <Text style={styles.subtitle}>HAMMR Control Center</Text>
+            <Text style={styles.title}>{t('adminPanel')}</Text>
+            <Text style={styles.subtitle}>{t('controlCenter')}</Text>
           </View>
           <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
             <Ionicons name="log-out-outline" size={22} color="#dc2626" />
@@ -116,7 +120,7 @@ export default function AdminDashboard() {
         {/* Revenue Card */}
         <Card style={styles.revenueCard}>
           <View style={styles.revenueHeader}>
-            <Text style={styles.revenueLabel}>Comisiones Totales</Text>
+            <Text style={styles.revenueLabel}>{t('totalCommissions')}</Text>
             <Ionicons name="trending-up" size={24} color="#16a34a" />
           </View>
           <Text style={styles.revenueAmount}>
@@ -124,13 +128,13 @@ export default function AdminDashboard() {
           </Text>
           <View style={styles.revenueStats}>
             <View style={styles.revenueStat}>
-              <Text style={styles.revenueStatLabel}>Ingresos Totales</Text>
+              <Text style={styles.revenueStatLabel}>{t('totalRevenue')}</Text>
               <Text style={styles.revenueStatValue}>
                 ${finance?.total_revenue?.toFixed(2) || '0.00'}
               </Text>
             </View>
             <View style={styles.revenueStat}>
-              <Text style={styles.revenueStatLabel}>En Escrow</Text>
+              <Text style={styles.revenueStatLabel}>{t('inEscrow')}</Text>
               <Text style={styles.revenueStatValue}>
                 ${finance?.pending_payouts?.toFixed(2) || '0.00'}
               </Text>
@@ -152,15 +156,15 @@ export default function AdminDashboard() {
         </View>
 
         {/* Monetization Summary */}
-        <Text style={styles.sectionTitle}>Modelo de Monetización</Text>
+        <Text style={styles.sectionTitle}>{t('monetizationModel')}</Text>
         <Card style={styles.monetizationCard}>
           <View style={styles.monetizationItem}>
             <View style={styles.monetizationIcon}>
               <Ionicons name="cash" size={20} color="#16a34a" />
             </View>
             <View style={styles.monetizationInfo}>
-              <Text style={styles.monetizationTitle}>Comisiones</Text>
-              <Text style={styles.monetizationDesc}>10% por trabajo completado</Text>
+              <Text style={styles.monetizationTitle}>{t('commissions')}</Text>
+              <Text style={styles.monetizationDesc}>{t('perJobCompleted')}</Text>
             </View>
             <Text style={styles.monetizationValue}>
               ${finance?.total_commissions?.toFixed(2) || '0.00'}
@@ -174,8 +178,8 @@ export default function AdminDashboard() {
               <Ionicons name="card" size={20} color="#2563eb" />
             </View>
             <View style={styles.monetizationInfo}>
-              <Text style={styles.monetizationTitle}>Suscripciones</Text>
-              <Text style={styles.monetizationDesc}>Proveedores Premium</Text>
+              <Text style={styles.monetizationTitle}>{t('subscriptions')}</Text>
+              <Text style={styles.monetizationDesc}>{t('premiumProviders')}</Text>
             </View>
             <Text style={styles.monetizationValue}>$0.00</Text>
           </View>
@@ -187,34 +191,34 @@ export default function AdminDashboard() {
               <Ionicons name="megaphone" size={20} color="#f59e0b" />
             </View>
             <View style={styles.monetizationInfo}>
-              <Text style={styles.monetizationTitle}>Publicidad</Text>
-              <Text style={styles.monetizationDesc}>Servicios destacados</Text>
+              <Text style={styles.monetizationTitle}>{t('advertising')}</Text>
+              <Text style={styles.monetizationDesc}>{t('featuredServicesAd')}</Text>
             </View>
             <Text style={styles.monetizationValue}>$0.00</Text>
           </View>
         </Card>
 
         {/* Quick Stats */}
-        <Text style={styles.sectionTitle}>Resumen de Trabajos</Text>
+        <Text style={styles.sectionTitle}>{t('jobsSummary')}</Text>
         <Card>
           <View style={styles.jobStats}>
             <View style={styles.jobStatItem}>
               <Text style={styles.jobStatValue}>{finance?.completed_jobs || 0}</Text>
-              <Text style={styles.jobStatLabel}>Completados</Text>
+              <Text style={styles.jobStatLabel}>{t('completed')}</Text>
             </View>
             <View style={styles.jobStatDivider} />
             <View style={styles.jobStatItem}>
               <Text style={styles.jobStatValue}>
                 {jobs.filter(j => j.status === 'pending').length}
               </Text>
-              <Text style={styles.jobStatLabel}>Pendientes</Text>
+              <Text style={styles.jobStatLabel}>{t('pending')}</Text>
             </View>
             <View style={styles.jobStatDivider} />
             <View style={styles.jobStatItem}>
               <Text style={styles.jobStatValue}>
                 {jobs.filter(j => j.status === 'in_progress').length}
               </Text>
-              <Text style={styles.jobStatLabel}>En Progreso</Text>
+              <Text style={styles.jobStatLabel}>{t('inProgress')}</Text>
             </View>
           </View>
         </Card>
