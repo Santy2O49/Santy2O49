@@ -11,84 +11,59 @@ HAMMR is an "Uber for home services" platform for El Salvador. Three interconnec
 - **Backend:** FastAPI (Python), MongoDB (motor async driver)
 - **Architecture:** Monorepo, three-role system via Expo route groups
 
-## Core Requirements
-- Multi-lingual (EN/ES) based on device settings
-- Secret admin login (5-tap copyright text)
-- Monetization: commissions, subscriptions, featured services
-- Cross-platform (mobile + web)
+## E2E Job Flow (COMPLETE)
+User → Post Job → Contractor → Bid → User → Accept Bid → Job Started → Completed → Rating Given
 
 ## What's Been Implemented
 
 ### Authentication & Roles
 - [x] Login/Logout for all three roles
-- [x] Registration with role selection
-- [x] JWT token-based auth
-- [x] Secret admin access (5-tap trigger)
-- [x] Demo quick-login buttons
+- [x] JWT token-based auth, secret admin access (5-tap trigger)
 
 ### Customer App
-- [x] Dark/Light theme switching (via Zustand store)
+- [x] Dark/Light theme switching (Zustand store)
 - [x] Custom sidebar drawer (hamburger menu)
-- [x] Platform-specific map: OpenStreetMap iframe (web) + react-native-maps (native)
-- [x] Map supports dark/light theme (CSS filter for web, customMapStyle for native)
-- [x] Service categories & featured services list
-- [x] Service request with price negotiation: 25% reduction allowed + manual price entry
-- [x] Jobs list with filtering (All/Active/Completed)
-- [x] Profile with edit, avatar upload, stats
-- [x] Settings with theme toggle, language selection
-- [x] Help & Support with contact options
+- [x] Platform-specific map (OSM iframe web, react-native-maps native)
+- [x] Service request with 25% price reduction + manual entry
+- [x] Jobs list with bid count, "View Bids" button, bids modal
+- [x] Accept bid flow — assigns contractor, rejects other bids
+- [x] Star rating after job completion
+- [x] Profile, Settings, Help screens
 
 ### Contractor App
-- [x] Job browsing & acceptance
-- [x] Job lifecycle (accept → start → complete)
-- [x] Earnings dashboard
-- [x] Profile management
+- [x] Available jobs with "Place Bid" button + bid modal (amount + message)
+- [x] My Jobs with Start/Complete lifecycle buttons
+- [x] Bid count shown per job, earnings calculation (after commission)
+- [x] Earnings dashboard, profile
+
+### Bidding System (NEW)
+- [x] POST /api/jobs/{job_id}/bid - Place bid with amount + message
+- [x] GET /api/jobs/{job_id}/bids - View all bids for a job
+- [x] PUT /api/bids/{bid_id}/accept - Accept bid, reject others, assign contractor
+- [x] GET /api/bids/my - Contractor's own bids
+- [x] Duplicate bid prevention, status management (pending/accepted/rejected)
 
 ### Admin App
-- [x] Dashboard with KPIs
-- [x] User management (verify/block)
-- [x] Jobs monitoring
-- [x] Finance overview
+- [x] Dashboard, User management, Jobs monitoring, Finance overview
 
 ### Backend
-- [x] Full CRUD for users, services, jobs
-- [x] Job lifecycle management
-- [x] Rating system (mutual)
-- [x] Finance/earnings tracking
-- [x] Database seeding
-
-## Key Architecture Decision: Maps
-- `MapComponent.tsx` (web): Uses OpenStreetMap iframe with CSS filter for dark mode
-- `MapComponent.native.tsx` (native): Uses react-native-maps with Google Maps dark style
-- Metro resolves the correct file based on platform automatically
-
-## DB Schema
-- **users:** id, email, password, role, full_name, phone, rating, is_verified
-- **services:** id, name, description, category, icon, base_price
-- **jobs:** id, customer_id, contractor_id, service_id, status, budget, location
-- **reviews:** job_id, reviewer_id, rating, comment
-- **transactions:** user_id, amount, type, job_id
+- [x] Full CRUD for users, services, jobs, bids
+- [x] Job lifecycle: pending → accepted → in_progress → completed
+- [x] Commission calculation (10%), rating system (mutual)
 
 ## Credentials
 - Customer: customer1@hammr.com / password123
 - Contractor: contractor1@hammr.com / password123
 - Admin: admin@hammr.com / admin123
 
-## Backlog (Prioritized)
-
+## Backlog
 ### P1
 - Admin sidebar navigation for web/tablet
 - Real-time push notifications
-- Price negotiation backend logic (store proposed price)
-
 ### P2
 - Payment integration (Stripe)
-- Profile photo upload with object storage
-- Contractor app dark/light theme
-- Real-time job tracking with live location
-
-### P3
 - Chat between customer and contractor
-- Scheduling system (calendar integration)
-- Review & rating UI improvements
+- Contractor app dark/light theme
+### P3
+- Scheduling system, live location tracking
 - Admin analytics dashboard
