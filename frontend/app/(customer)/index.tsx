@@ -8,18 +8,22 @@ import {
   Dimensions,
   Alert,
   RefreshControl,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/store/authStore';
+import { useThemeStore } from '../../src/store/themeStore';
 import { Service } from '../../src/types';
 import api from '../../src/api/client';
 import { t } from '../../src/i18n/translations';
 
 const { width, height } = Dimensions.get('window');
 
-// Service category icons
+const EL_SALVADOR_LAT = 13.6929;
+const EL_SALVADOR_LNG = -89.2182;
+
 const serviceCategories = [
   { id: 'repair', name: 'Reparación', icon: 'construct', color: '#3b82f6' },
   { id: 'cleaning', name: 'Limpieza', icon: 'sparkles', color: '#10b981' },
@@ -30,6 +34,7 @@ const serviceCategories = [
 export default function CustomerHome() {
   const router = useRouter();
   const { user } = useAuthStore();
+  const { colors, mode } = useThemeStore();
   const [services, setServices] = useState<Service[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -60,23 +65,6 @@ export default function CustomerHome() {
     });
   };
 
-  const quickActions = [
-    {
-      id: 'emergency',
-      title: 'Servicio urgente',
-      description: 'Atención inmediata',
-      icon: 'flash',
-      color: '#ef4444',
-    },
-    {
-      id: 'schedule',
-      title: 'Programar',
-      description: 'Elige fecha y hora',
-      icon: 'calendar',
-      color: '#3b82f6',
-    },
-  ];
-
   function getServiceIcon(icon: string): any {
     const iconMap: Record<string, string> = {
       plumbing: 'water',
@@ -93,42 +81,60 @@ export default function CustomerHome() {
     return iconMap[icon] || 'construct';
   }
 
+  const mapTileStyle = mode === 'dark'
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+
+  const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${EL_SALVADOR_LNG - 0.05},${EL_SALVADOR_LAT - 0.03},${EL_SALVADOR_LNG + 0.05},${EL_SALVADOR_LAT + 0.03}&layer=mapnik&marker=${EL_SALVADOR_LAT},${EL_SALVADOR_LNG}`;
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Map Background Placeholder */}
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} data-testid="customer-home">
+      {/* Map Area */}
       <View style={styles.mapContainer}>
-        <View style={styles.mapPlaceholder}>
-          <Ionicons name="location" size={48} color="#3b82f6" />
-          <Text style={styles.mapText}>San Salvador, El Salvador</Text>
-          <Text style={styles.mapSubtext}>Tu ubicación actual</Text>
-        </View>
+        {Platform.OS === 'web' ? (
+          <iframe
+            src={osmUrl}
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              filter: mode === 'dark' ? 'invert(1) hue-rotate(180deg) brightness(0.9) contrast(1.1)' : 'none',
+            }}
+            title="Map"
+          />
+        ) : (
+          <View style={[styles.mapPlaceholder, { backgroundColor: colors.surfaceAlt }]}>
+            <Ionicons name="location" size={48} color={colors.accent} />
+            <Text style={[styles.mapText, { color: colors.text }]}>San Salvador, El Salvador</Text>
+            <Text style={[styles.mapSubtext, { color: colors.textSecondary }]}>Tu ubicación actual</Text>
+          </View>
+        )}
 
-        {/* Location Pin */}
-        <View style={styles.locationBadge}>
-          <Ionicons name="location" size={16} color="#3b82f6" />
-          <Text style={styles.locationText}>Punto de servicio</Text>
-          <Text style={styles.locationAddress}>San Salvador, El Salvador</Text>
+        {/* Location Badge */}
+        <View style={[styles.locationBadge, { backgroundColor: colors.surface + 'F0' }]}>
+          <Ionicons name="location" size={14} color={colors.accent} />
+          <View style={{ marginLeft: 8 }}>
+            <Text style={[styles.locationLabel, { color: colors.textSecondary }]}>Service point</Text>
+            <Text style={[styles.locationAddress, { color: colors.text }]}>San Salvador, SV</Text>
+          </View>
         </View>
-
-        {/* My Location Button */}
-        <TouchableOpacity style={styles.myLocationButton}>
-          <Ionicons name="navigate" size={20} color="#ffffff" />
-        </TouchableOpacity>
       </View>
 
       {/* Bottom Sheet */}
-      <View style={styles.bottomSheet}>
+      <View style={[styles.bottomSheet, { backgroundColor: colors.background }]}>
+        <View style={styles.sheetHandle}>
+          <View style={[styles.handleBar, { backgroundColor: colors.border }]} />
+        </View>
         <ScrollView
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#c8ff00" />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
           }
         >
           {/* Service Categories */}
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
-            style={styles.categoriesContainer}
             contentContainerStyle={styles.categoriesContent}
           >
             {serviceCategories.map((category) => (
@@ -136,72 +142,65 @@ export default function CustomerHome() {
                 key={category.id}
                 style={[
                   styles.categoryButton,
-                  selectedCategory === category.id && styles.categoryButtonActive
+                  { backgroundColor: colors.surface },
+                  selectedCategory === category.id && { backgroundColor: category.color },
                 ]}
-                onPress={() => setSelectedCategory(
-                  selectedCategory === category.id ? null : category.id
-                )}
+                onPress={() => setSelectedCategory(selectedCategory === category.id ? null : category.id)}
+                data-testid={`category-${category.id}`}
               >
                 <View style={[styles.categoryIcon, { backgroundColor: category.color + '20' }]}>
-                  <Ionicons name={category.icon as any} size={24} color={category.color} />
+                  <Ionicons name={category.icon as any} size={22} color={category.color} />
                 </View>
-                <Text style={styles.categoryText}>{category.name}</Text>
+                <Text style={[
+                  styles.categoryText,
+                  { color: selectedCategory === category.id ? '#fff' : colors.text },
+                ]}>
+                  {category.name}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
 
           {/* Search Bar */}
-          <TouchableOpacity 
-            style={styles.searchBar}
+          <TouchableOpacity
+            style={[styles.searchBar, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => Alert.alert('Buscar', '¿Qué servicio necesitas?')}
+            data-testid="search-bar"
           >
-            <Ionicons name="search" size={20} color="#9ca3af" />
-            <Text style={styles.searchText}>¿Qué servicio necesitas?</Text>
+            <Ionicons name="search" size={20} color={colors.textMuted} />
+            <Text style={[styles.searchText, { color: colors.textMuted }]}>
+              {t('searchServices')}
+            </Text>
           </TouchableOpacity>
 
-          {/* Quick Actions */}
-          <View style={styles.quickActionsContainer}>
-            {quickActions.map((action) => (
-              <TouchableOpacity
-                key={action.id}
-                style={styles.quickActionCard}
-                onPress={() => router.push('/(customer)/request')}
-              >
-                <Text style={styles.quickActionTitle}>{action.title}</Text>
-                <View style={styles.quickActionImagePlaceholder}>
-                  <Ionicons name={action.icon as any} size={32} color={action.color} />
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-
           {/* Services List */}
-          <Text style={styles.sectionTitle}>Servicios populares</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t('featuredServices')}
+          </Text>
           {services.slice(0, 6).map((service) => (
             <TouchableOpacity
               key={service.id}
-              style={styles.serviceItem}
+              style={[styles.serviceItem, { backgroundColor: colors.surface }]}
               onPress={() => handleServiceSelect(service)}
+              data-testid={`service-${service.id}`}
             >
-              <View style={styles.serviceIconContainer}>
-                <Ionicons 
-                  name={getServiceIcon(service.icon)} 
-                  size={24} 
-                  color="#c8ff00" 
-                />
+              <View style={[styles.serviceIconContainer, { backgroundColor: colors.surfaceAlt }]}>
+                <Ionicons name={getServiceIcon(service.icon)} size={22} color={colors.accent} />
               </View>
               <View style={styles.serviceInfo}>
-                <Text style={styles.serviceName}>{service.name}</Text>
-                <Text style={styles.serviceDescription}>{service.description}</Text>
+                <Text style={[styles.serviceName, { color: colors.text }]}>{service.name}</Text>
+                <Text style={[styles.serviceDescription, { color: colors.textSecondary }]}>
+                  {service.description}
+                </Text>
               </View>
               <View style={styles.servicePriceContainer}>
-                <Text style={styles.servicePrice}>${service.base_price}</Text>
-                <Ionicons name="chevron-forward" size={20} color="#6b7280" />
+                <Text style={[styles.servicePrice, { color: colors.accent }]}>${service.base_price}</Text>
+                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
               </View>
             </TouchableOpacity>
           ))}
 
-          <View style={styles.spacer} />
+          <View style={{ height: 24 }} />
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -211,160 +210,116 @@ export default function CustomerHome() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
   },
   mapContainer: {
-    height: height * 0.35,
-    backgroundColor: '#2d3748',
+    height: height * 0.32,
     position: 'relative',
   },
   mapPlaceholder: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1e293b',
   },
   mapText: {
-    color: '#ffffff',
     fontSize: 18,
     fontWeight: '600',
     marginTop: 12,
   },
   mapSubtext: {
-    color: '#9ca3af',
     fontSize: 14,
     marginTop: 4,
   },
   locationBadge: {
     position: 'absolute',
-    top: 60,
-    left: '50%',
-    transform: [{ translateX: -100 }],
-    backgroundColor: 'rgba(30,30,30,0.95)',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    width: 200,
+    top: 56,
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
   },
-  locationText: {
-    color: '#9ca3af',
-    fontSize: 12,
+  locationLabel: {
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   locationAddress: {
-    color: '#ffffff',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-  },
-  myLocationButton: {
-    position: 'absolute',
-    bottom: 32,
-    right: 16,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   bottomSheet: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    marginTop: -24,
-    paddingTop: 16,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    marginTop: -20,
   },
-  categoriesContainer: {
-    maxHeight: 100,
+  sheetHandle: {
+    alignItems: 'center',
+    paddingTop: 10,
+    paddingBottom: 6,
+  },
+  handleBar: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
   },
   categoriesContent: {
     paddingHorizontal: 16,
-    gap: 12,
+    paddingBottom: 8,
+    gap: 10,
   },
   categoryButton: {
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderRadius: 12,
-    backgroundColor: '#262626',
-    marginRight: 12,
-  },
-  categoryButtonActive: {
-    backgroundColor: '#3b82f6',
+    marginRight: 4,
   },
   categoryIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   categoryText: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 11,
+    fontWeight: '600',
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#262626',
     marginHorizontal: 16,
-    marginVertical: 16,
+    marginVertical: 12,
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 13,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#333',
   },
   searchText: {
-    color: '#9ca3af',
-    fontSize: 16,
-    marginLeft: 12,
-  },
-  quickActionsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    gap: 12,
-    marginBottom: 16,
-  },
-  quickActionCard: {
-    flex: 1,
-    backgroundColor: '#262626',
-    borderRadius: 16,
-    padding: 16,
-    height: 100,
-    justifyContent: 'space-between',
-  },
-  quickActionTitle: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  quickActionImagePlaceholder: {
-    alignSelf: 'flex-end',
+    fontSize: 15,
+    marginLeft: 10,
   },
   sectionTitle: {
-    color: '#ffffff',
     fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
+    fontWeight: '700',
+    marginBottom: 10,
     paddingHorizontal: 16,
   },
   serviceItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#262626',
     borderRadius: 12,
-    padding: 16,
+    padding: 14,
     marginHorizontal: 16,
     marginBottom: 8,
   },
   serviceIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#1a1a1a',
+    width: 44,
+    height: 44,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -373,12 +328,10 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   serviceName: {
-    color: '#ffffff',
     fontSize: 14,
     fontWeight: '600',
   },
   serviceDescription: {
-    color: '#9ca3af',
     fontSize: 12,
     marginTop: 2,
   },
@@ -387,12 +340,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   servicePrice: {
-    color: '#c8ff00',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    marginRight: 8,
-  },
-  spacer: {
-    height: 20,
+    marginRight: 6,
   },
 });

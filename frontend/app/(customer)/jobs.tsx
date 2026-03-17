@@ -10,11 +10,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeStore } from '../../src/store/themeStore';
 import { Job, JobStatus } from '../../src/types';
 import { StatusBadge } from '../../src/components/StatusBadge';
 import api from '../../src/api/client';
+import { t } from '../../src/i18n/translations';
 
 export default function CustomerJobs() {
+  const { colors } = useThemeStore();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<string>('all');
@@ -28,9 +31,7 @@ export default function CustomerJobs() {
     }
   };
 
-  useEffect(() => {
-    fetchJobs();
-  }, []);
+  useEffect(() => { fetchJobs(); }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -39,39 +40,34 @@ export default function CustomerJobs() {
   };
 
   const handleCancel = async (jobId: string) => {
-    Alert.alert(
-      'Cancelar Trabajo',
-      '¿Estás seguro de que quieres cancelar este trabajo?',
-      [
-        { text: 'No', style: 'cancel' },
-        {
-          text: 'Sí, Cancelar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.put(`/jobs/${jobId}/cancel`);
-              fetchJobs();
-              Alert.alert('Éxito', 'Trabajo cancelado');
-            } catch (error: any) {
-              Alert.alert('Error', error.response?.data?.detail || 'No se pudo cancelar');
-            }
-          },
+    Alert.alert('Cancel Job', 'Are you sure?', [
+      { text: 'No', style: 'cancel' },
+      {
+        text: 'Yes',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await api.put(`/jobs/${jobId}/cancel`);
+            fetchJobs();
+          } catch (error: any) {
+            Alert.alert('Error', error.response?.data?.detail || 'Failed');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleRate = async (jobId: string, rating: number) => {
     try {
       await api.put(`/jobs/${jobId}/rate?rating=${rating}`);
       fetchJobs();
-      Alert.alert('Éxito', '¡Gracias por tu calificación!');
+      Alert.alert('Thanks!', 'Rating submitted');
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'No se pudo calificar');
+      Alert.alert('Error', error.response?.data?.detail || 'Failed');
     }
   };
 
-  const filteredJobs = jobs.filter(job => {
+  const filteredJobs = jobs.filter((job) => {
     if (filter === 'all') return true;
     if (filter === 'active') return [JobStatus.PENDING, JobStatus.ACCEPTED, JobStatus.IN_PROGRESS].includes(job.status as JobStatus);
     if (filter === 'completed') return job.status === JobStatus.COMPLETED;
@@ -79,40 +75,30 @@ export default function CustomerJobs() {
   });
 
   const filters = [
-    { key: 'all', label: 'Todos' },
-    { key: 'active', label: 'Activos' },
-    { key: 'completed', label: 'Completados' },
+    { key: 'all', label: t('all') },
+    { key: 'active', label: t('active') },
+    { key: 'completed', label: t('completed') },
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Mis Solicitudes</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} data-testid="customer-jobs">
+      <View style={[styles.header, { backgroundColor: colors.headerBg, borderBottomColor: colors.border }]}>
+        <Text style={[styles.title, { color: colors.text }]}>{t('myJobs')}</Text>
       </View>
 
       {/* Filters */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterContainer}
-        contentContainerStyle={styles.filterContent}
-      >
-        {filters.map(f => (
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterContent}>
+        {filters.map((f) => (
           <TouchableOpacity
             key={f.key}
             style={[
               styles.filterButton,
-              filter === f.key && styles.filterButtonActive,
+              { backgroundColor: filter === f.key ? colors.accent : colors.surface },
             ]}
             onPress={() => setFilter(f.key)}
+            data-testid={`filter-${f.key}`}
           >
-            <Text
-              style={[
-                styles.filterText,
-                filter === f.key && styles.filterTextActive,
-              ]}
-            >
+            <Text style={[styles.filterText, { color: filter === f.key ? colors.accentText : colors.textSecondary }]}>
               {f.label}
             </Text>
           </TouchableOpacity>
@@ -121,83 +107,57 @@ export default function CustomerJobs() {
 
       <ScrollView
         contentContainerStyle={styles.content}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#c8ff00" />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
       >
         {filteredJobs.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="clipboard-outline" size={64} color="#4b5563" />
-            <Text style={styles.emptyTitle}>No hay solicitudes</Text>
-            <Text style={styles.emptyText}>Tus solicitudes aparecerán aquí</Text>
+            <Ionicons name="clipboard-outline" size={56} color={colors.textMuted} />
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>{t('noJobs')}</Text>
+            <Text style={[styles.emptyText, { color: colors.textMuted }]}>{t('yourRequestsAppearHere')}</Text>
           </View>
         ) : (
-          filteredJobs.map(job => (
-            <View key={job.id} style={styles.jobCard}>
+          filteredJobs.map((job) => (
+            <View key={job.id} style={[styles.jobCard, { backgroundColor: colors.surface }]}>
               <View style={styles.jobHeader}>
                 <View style={styles.jobInfo}>
-                  <Text style={styles.jobTitle}>{job.service_name}</Text>
+                  <Text style={[styles.jobTitle, { color: colors.text }]}>{job.service_name}</Text>
                   <View style={styles.locationRow}>
-                    <Ionicons name="location" size={12} color="#6b7280" />
-                    <Text style={styles.jobLocation}>{job.location}</Text>
+                    <Ionicons name="location" size={12} color={colors.textMuted} />
+                    <Text style={[styles.jobLocation, { color: colors.textMuted }]}>{job.location}</Text>
                   </View>
                 </View>
                 <StatusBadge status={job.status} />
               </View>
-
-              <Text style={styles.jobDescription} numberOfLines={2}>
+              <Text style={[styles.jobDescription, { color: colors.textSecondary }]} numberOfLines={2}>
                 {job.description}
               </Text>
-
-              <View style={styles.jobFooter}>
+              <View style={[styles.jobFooter, { borderTopColor: colors.border }]}>
                 <View>
-                  <Text style={styles.jobPriceLabel}>Presupuesto</Text>
-                  <Text style={styles.jobPrice}>${job.budget}</Text>
+                  <Text style={[styles.jobPriceLabel, { color: colors.textMuted }]}>{t('budget')}</Text>
+                  <Text style={[styles.jobPrice, { color: colors.accent }]}>${job.budget}</Text>
                 </View>
                 <View>
-                  <Text style={styles.jobDateLabel}>Fecha</Text>
-                  <Text style={styles.jobDate}>
+                  <Text style={[styles.jobDateLabel, { color: colors.textMuted }]}>{t('date')}</Text>
+                  <Text style={[styles.jobDate, { color: colors.text }]}>
                     {new Date(job.created_at).toLocaleDateString()}
                   </Text>
                 </View>
               </View>
 
               {job.status === JobStatus.PENDING && (
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={() => handleCancel(job.id)}
-                >
-                  <Text style={styles.cancelButtonText}>Cancelar</Text>
+                <TouchableOpacity style={[styles.cancelButton, { backgroundColor: colors.surfaceAlt }]} onPress={() => handleCancel(job.id)}>
+                  <Text style={{ color: colors.danger, fontWeight: '600' }}>Cancel</Text>
                 </TouchableOpacity>
               )}
 
               {job.status === JobStatus.COMPLETED && !job.contractor_rating && (
-                <View style={styles.ratingSection}>
-                  <Text style={styles.ratingLabel}>Califica al proveedor:</Text>
+                <View style={[styles.ratingSection, { borderTopColor: colors.border }]}>
+                  <Text style={[{ color: colors.text, fontSize: 13, marginBottom: 6 }]}>{t('rateContractor')}</Text>
                   <View style={styles.stars}>
-                    {[1, 2, 3, 4, 5].map(star => (
-                      <TouchableOpacity
-                        key={star}
-                        onPress={() => handleRate(job.id, star)}
-                      >
-                        <Ionicons name="star" size={28} color="#fbbf24" />
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <TouchableOpacity key={star} onPress={() => handleRate(job.id, star)}>
+                        <Ionicons name="star" size={26} color={colors.warning} />
                       </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-              )}
-
-              {job.contractor_rating && (
-                <View style={styles.ratedSection}>
-                  <Text style={styles.ratedLabel}>Tu calificación:</Text>
-                  <View style={styles.stars}>
-                    {[1, 2, 3, 4, 5].map(star => (
-                      <Ionicons
-                        key={star}
-                        name={star <= job.contractor_rating! ? 'star' : 'star-outline'}
-                        size={20}
-                        color="#fbbf24"
-                      />
                     ))}
                   </View>
                 </View>
@@ -211,161 +171,29 @@ export default function CustomerJobs() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1a1a1a',
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: '#262626',
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  filterContainer: {
-    maxHeight: 60,
-    backgroundColor: '#1a1a1a',
-  },
-  filterContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
-  },
-  filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#262626',
-    marginRight: 8,
-  },
-  filterButtonActive: {
-    backgroundColor: '#c8ff00',
-  },
-  filterText: {
-    fontSize: 14,
-    color: '#9ca3af',
-    fontWeight: '500',
-  },
-  filterTextActive: {
-    color: '#1a1a1a',
-  },
-  content: {
-    padding: 16,
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#ffffff',
-    marginTop: 16,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginTop: 4,
-  },
-  jobCard: {
-    backgroundColor: '#262626',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-  },
-  jobHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  jobInfo: {
-    flex: 1,
-  },
-  jobTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  jobLocation: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginLeft: 4,
-  },
-  jobDescription: {
-    fontSize: 14,
-    color: '#9ca3af',
-    marginBottom: 12,
-  },
-  jobFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#333',
-  },
-  jobPriceLabel: {
-    fontSize: 12,
-    color: '#6b7280',
-  },
-  jobPrice: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#c8ff00',
-  },
-  jobDateLabel: {
-    fontSize: 12,
-    color: '#6b7280',
-  },
-  jobDate: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#ffffff',
-  },
-  cancelButton: {
-    marginTop: 12,
-    paddingVertical: 12,
-    borderRadius: 8,
-    backgroundColor: '#333',
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: '#ef4444',
-    fontWeight: '600',
-  },
-  ratingSection: {
-    marginTop: 16,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#333',
-  },
-  ratingLabel: {
-    fontSize: 14,
-    color: '#ffffff',
-    marginBottom: 8,
-  },
-  stars: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  ratedSection: {
-    marginTop: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  ratedLabel: {
-    fontSize: 12,
-    color: '#6b7280',
-  },
+  container: { flex: 1 },
+  header: { paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1 },
+  title: { fontSize: 20, fontWeight: '700' },
+  filterContent: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
+  filterButton: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, marginRight: 4 },
+  filterText: { fontSize: 13, fontWeight: '600' },
+  content: { padding: 16 },
+  emptyState: { alignItems: 'center', paddingVertical: 60 },
+  emptyTitle: { fontSize: 17, fontWeight: '600', marginTop: 14 },
+  emptyText: { fontSize: 13, marginTop: 4 },
+  jobCard: { borderRadius: 14, padding: 16, marginBottom: 10 },
+  jobHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
+  jobInfo: { flex: 1 },
+  jobTitle: { fontSize: 15, fontWeight: '600' },
+  locationRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  jobLocation: { fontSize: 12, marginLeft: 4 },
+  jobDescription: { fontSize: 13, marginBottom: 10 },
+  jobFooter: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 10, borderTopWidth: 1 },
+  jobPriceLabel: { fontSize: 11 },
+  jobPrice: { fontSize: 17, fontWeight: '700' },
+  jobDateLabel: { fontSize: 11 },
+  jobDate: { fontSize: 13, fontWeight: '500' },
+  cancelButton: { marginTop: 10, paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
+  ratingSection: { marginTop: 12, paddingTop: 10, borderTopWidth: 1 },
+  stars: { flexDirection: 'row', gap: 4 },
 });

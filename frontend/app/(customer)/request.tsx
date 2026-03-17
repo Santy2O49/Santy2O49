@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,47 +8,45 @@ import {
   TextInput,
   Alert,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeStore } from '../../src/store/themeStore';
 import api from '../../src/api/client';
-import { t } from '../../src/i18n/translations';
 
 const { width } = Dimensions.get('window');
+const EL_SALVADOR_LAT = 13.6929;
+const EL_SALVADOR_LNG = -89.2182;
 
 export default function ServiceRequest() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  
-  const serviceName = params.serviceName as string || 'Servicio';
+  const { colors, mode } = useThemeStore();
+
+  const serviceName = (params.serviceName as string) || 'Service';
   const basePrice = parseFloat(params.basePrice as string) || 50;
   const serviceId = params.serviceId as string;
 
-  // Price can be adjusted 15% below base price
   const minPrice = Math.round(basePrice * 0.85);
   const maxPrice = Math.round(basePrice * 1.2);
-  
+
   const [price, setPrice] = useState(basePrice);
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('San Salvador, El Salvador');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handlePriceChange = (direction: 'up' | 'down') => {
-    const step = 1;
-    if (direction === 'up' && price < maxPrice) {
-      setPrice(price + step);
-    } else if (direction === 'down' && price > minPrice) {
-      setPrice(price - step);
-    }
+    if (direction === 'up' && price < maxPrice) setPrice(price + 1);
+    else if (direction === 'down' && price > minPrice) setPrice(price - 1);
   };
 
   const handleSubmit = async () => {
     if (!description) {
-      Alert.alert('Error', 'Por favor describe el trabajo que necesitas');
+      Alert.alert('Error', 'Please describe the job you need');
       return;
     }
-
     setIsSubmitting(true);
     try {
       await api.post('/jobs', {
@@ -57,13 +55,11 @@ export default function ServiceRequest() {
         location,
         budget: price,
       });
-      Alert.alert(
-        '¡Solicitud enviada!',
-        'Proveedores en tu área recibirán tu solicitud. Te contactarán pronto.',
-        [{ text: 'OK', onPress: () => router.back() }]
-      );
+      Alert.alert('Request Sent!', 'Providers in your area will receive your request.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'No se pudo enviar la solicitud');
+      Alert.alert('Error', error.response?.data?.detail || 'Could not submit request');
     } finally {
       setIsSubmitting(false);
     }
@@ -71,442 +67,225 @@ export default function ServiceRequest() {
 
   const pricePercentage = Math.round(((price - basePrice) / basePrice) * 100);
 
+  const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${EL_SALVADOR_LNG - 0.03},${EL_SALVADOR_LAT - 0.02},${EL_SALVADOR_LNG + 0.03},${EL_SALVADOR_LAT + 0.02}&layer=mapnik&marker=${EL_SALVADOR_LAT},${EL_SALVADOR_LNG}`;
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header with Route Info */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#ffffff" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} data-testid="service-request">
+      {/* Header */}
+      <View style={[styles.header, { backgroundColor: colors.headerBg }]}>
+        <TouchableOpacity onPress={() => router.back()} data-testid="back-btn">
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        
         <View style={styles.routeInfo}>
           <View style={styles.routeRow}>
-            <View style={[styles.routeDot, { backgroundColor: '#c8ff00' }]} />
+            <View style={[styles.routeDot, { backgroundColor: colors.accent }]} />
             <TextInput
-              style={styles.routeInput}
+              style={[styles.routeInput, { color: colors.text }]}
               value={location}
               onChangeText={setLocation}
-              placeholder="Tu ubicación"
-              placeholderTextColor="#6b7280"
+              placeholder="Your location"
+              placeholderTextColor={colors.textMuted}
             />
-            <Text style={styles.portalText}>Portal</Text>
           </View>
           <View style={styles.routeRow}>
-            <View style={[styles.routeDot, { backgroundColor: '#ef4444' }]} />
-            <Text style={styles.routeText}>{serviceName}</Text>
-            <TouchableOpacity>
-              <Ionicons name="add" size={24} color="#ffffff" />
-            </TouchableOpacity>
+            <View style={[styles.routeDot, { backgroundColor: colors.danger }]} />
+            <Text style={[styles.routeText, { color: colors.text }]}>{serviceName}</Text>
           </View>
         </View>
       </View>
 
-      {/* Map Placeholder */}
+      {/* Mini Map */}
       <View style={styles.mapContainer}>
-        <View style={styles.mapPlaceholder}>
-          <Ionicons name="location" size={48} color="#3b82f6" />
-          <Text style={styles.mapText}>Área de servicio</Text>
-        </View>
-        
-        <TouchableOpacity style={styles.backMapButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#ffffff" />
-        </TouchableOpacity>
+        {Platform.OS === 'web' ? (
+          <iframe
+            src={osmUrl}
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              filter: mode === 'dark' ? 'invert(1) hue-rotate(180deg) brightness(0.9) contrast(1.1)' : 'none',
+            }}
+            title="Service Area"
+          />
+        ) : (
+          <View style={[styles.mapPlaceholder, { backgroundColor: colors.surfaceAlt }]}>
+            <Ionicons name="location" size={36} color={colors.accent} />
+            <Text style={[{ color: colors.textSecondary, marginTop: 6 }]}>Service Area</Text>
+          </View>
+        )}
       </View>
 
-      {/* Promo Banner */}
-      <TouchableOpacity style={styles.promoBanner}>
-        <Ionicons name="pricetag" size={20} color="#ffffff" />
-        <Text style={styles.promoText}>¿Tienes un código promocional? Úsalo aquí</Text>
-        <Ionicons name="chevron-forward" size={20} color="#6b7280" />
-      </TouchableOpacity>
-
-      {/* Price Selection */}
-      <View style={styles.priceSection}>
-        {/* Service Type Card */}
-        <View style={styles.serviceCard}>
+      <ScrollView style={styles.scrollArea} showsVerticalScrollIndicator={false}>
+        {/* Service Card with Price */}
+        <View style={[styles.serviceCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.serviceCardHeader}>
-            <View style={styles.serviceCardLeft}>
-              <View style={styles.serviceIconLarge}>
-                <Ionicons name="construct" size={32} color="#c8ff00" />
-              </View>
-              <View style={styles.serviceCardInfo}>
-                <View style={styles.serviceNameRow}>
-                  <Text style={styles.serviceCardName}>{serviceName}</Text>
-                  <TouchableOpacity>
-                    <Ionicons name="information-circle-outline" size={18} color="#6b7280" />
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.serviceCardDesc}>Servicio profesional</Text>
-              </View>
+            <View style={[styles.serviceIconLarge, { backgroundColor: colors.surfaceAlt }]}>
+              <Ionicons name="construct" size={28} color={colors.accent} />
             </View>
-            <TouchableOpacity>
-              <Ionicons name="pencil" size={20} color="#6b7280" />
-            </TouchableOpacity>
+            <View style={styles.serviceCardInfo}>
+              <Text style={[styles.serviceCardName, { color: colors.text }]}>{serviceName}</Text>
+              <Text style={[styles.serviceCardDesc, { color: colors.textMuted }]}>Professional service</Text>
+            </View>
           </View>
 
           {/* Price Adjuster */}
-          <View style={styles.priceAdjuster}>
-            <TouchableOpacity 
-              style={styles.priceButton}
+          <View style={[styles.priceAdjuster, { borderTopColor: colors.border }]}>
+            <TouchableOpacity
+              style={[styles.priceButton, { backgroundColor: colors.surfaceAlt }]}
               onPress={() => handlePriceChange('down')}
               disabled={price <= minPrice}
             >
-              <Ionicons 
-                name="remove" 
-                size={24} 
-                color={price <= minPrice ? '#4b5563' : '#ffffff'} 
-              />
+              <Ionicons name="remove" size={22} color={price <= minPrice ? colors.textMuted : colors.text} />
             </TouchableOpacity>
-            
             <View style={styles.priceDisplay}>
-              <Text style={styles.priceAmount}>${price.toFixed(2)}</Text>
-              <Text style={styles.priceRecommended}>
-                Tarifa recomendada: ${basePrice.toFixed(2)}
+              <Text style={[styles.priceAmount, { color: colors.text }]}>${price.toFixed(2)}</Text>
+              <Text style={[styles.priceRecommended, { color: colors.textMuted }]}>
+                Recommended: ${basePrice.toFixed(2)}
               </Text>
               {pricePercentage !== 0 && (
-                <Text style={[
-                  styles.pricePercent,
-                  { color: pricePercentage < 0 ? '#ef4444' : '#22c55e' }
-                ]}>
+                <Text style={[styles.pricePercent, { color: pricePercentage < 0 ? colors.danger : colors.success }]}>
                   {pricePercentage > 0 ? '+' : ''}{pricePercentage}%
                 </Text>
               )}
             </View>
-            
-            <TouchableOpacity 
-              style={styles.priceButton}
+            <TouchableOpacity
+              style={[styles.priceButton, { backgroundColor: colors.surfaceAlt }]}
               onPress={() => handlePriceChange('up')}
               disabled={price >= maxPrice}
             >
-              <Ionicons 
-                name="add" 
-                size={24} 
-                color={price >= maxPrice ? '#4b5563' : '#ffffff'} 
-              />
+              <Ionicons name="add" size={22} color={price >= maxPrice ? colors.textMuted : colors.text} />
             </TouchableOpacity>
           </View>
 
-          {/* Price Range Indicator */}
+          {/* Price Range Bar */}
           <View style={styles.priceRange}>
-            <Text style={styles.priceRangeText}>Min: ${minPrice}</Text>
-            <View style={styles.priceRangeBar}>
-              <View 
-                style={[
-                  styles.priceRangeFill,
-                  { width: `${((price - minPrice) / (maxPrice - minPrice)) * 100}%` }
-                ]} 
-              />
+            <Text style={[styles.priceRangeText, { color: colors.textMuted }]}>${minPrice}</Text>
+            <View style={[styles.priceRangeBar, { backgroundColor: colors.border }]}>
+              <View style={[styles.priceRangeFill, { width: `${((price - minPrice) / (maxPrice - minPrice)) * 100}%`, backgroundColor: colors.accent }]} />
             </View>
-            <Text style={styles.priceRangeText}>Max: ${maxPrice}</Text>
+            <Text style={[styles.priceRangeText, { color: colors.textMuted }]}>${maxPrice}</Text>
           </View>
         </View>
 
-        {/* Description Input */}
+        {/* Description */}
         <TextInput
-          style={styles.descriptionInput}
+          style={[styles.descriptionInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
           value={description}
           onChangeText={setDescription}
-          placeholder="Describe el trabajo que necesitas..."
-          placeholderTextColor="#6b7280"
+          placeholder="Describe the job you need..."
+          placeholderTextColor={colors.textMuted}
           multiline
           numberOfLines={3}
+          data-testid="job-description-input"
         />
 
-        {/* Auto Accept Toggle */}
-        <View style={styles.autoAcceptRow}>
-          <Ionicons name="flash" size={24} color="#6b7280" />
-          <Text style={styles.autoAcceptText}>
-            Aceptar automáticamente ofertas de ${price.toFixed(2)}
+        {/* Submit */}
+        <TouchableOpacity
+          style={[styles.submitButton, { backgroundColor: colors.accent }]}
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+          data-testid="submit-request-btn"
+        >
+          <Text style={[styles.submitText, { color: colors.accentText }]}>
+            {isSubmitting ? 'Submitting...' : 'Find Providers'}
           </Text>
-          <View style={styles.toggleOff}>
-            <View style={styles.toggleCircle} />
-          </View>
-        </View>
+        </TouchableOpacity>
 
-        {/* Submit Button */}
-        <View style={styles.submitRow}>
-          <View style={styles.batteryIndicator}>
-            <Ionicons name="battery-half" size={24} color="#22c55e" />
-          </View>
-          <TouchableOpacity 
-            style={styles.submitButton}
-            onPress={handleSubmit}
-            disabled={isSubmitting}
-          >
-            <Text style={styles.submitText}>
-              {isSubmitting ? 'Enviando...' : 'Encontrar proveedores'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.filterButton}>
-            <Ionicons name="options" size={24} color="#ffffff" />
-          </TouchableOpacity>
-        </View>
-      </View>
+        <View style={{ height: 24 }} />
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1a1a1a',
-  },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     padding: 16,
-    backgroundColor: '#262626',
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  routeInfo: {
-    flex: 1,
-    marginLeft: 8,
-  },
+  routeInfo: { flex: 1, marginLeft: 10 },
   routeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
-  routeDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 12,
-  },
-  routeInput: {
-    flex: 1,
-    color: '#ffffff',
-    fontSize: 16,
-  },
-  routeText: {
-    flex: 1,
-    color: '#ffffff',
-    fontSize: 16,
-  },
-  portalText: {
-    color: '#6b7280',
-    fontSize: 14,
-  },
-  mapContainer: {
-    height: 200,
-    backgroundColor: '#1e293b',
-    position: 'relative',
-  },
+  routeDot: { width: 10, height: 10, borderRadius: 5, marginRight: 10 },
+  routeInput: { flex: 1, fontSize: 15 },
+  routeText: { flex: 1, fontSize: 15 },
+  mapContainer: { height: 160 },
   mapPlaceholder: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  mapText: {
-    color: '#9ca3af',
-    marginTop: 8,
-  },
-  backMapButton: {
-    position: 'absolute',
-    top: 16,
-    left: 16,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  promoBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#262626',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-  },
-  promoText: {
-    flex: 1,
-    color: '#ffffff',
-    fontSize: 14,
-    marginLeft: 12,
-  },
-  priceSection: {
-    flex: 1,
-    padding: 16,
-  },
+  scrollArea: { flex: 1, padding: 16 },
   serviceCard: {
-    backgroundColor: '#262626',
-    borderRadius: 16,
+    borderRadius: 14,
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#333',
   },
   serviceCardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  serviceCardLeft: {
-    flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 14,
   },
   serviceIconLarge: {
-    width: 56,
-    height: 56,
+    width: 50,
+    height: 50,
     borderRadius: 12,
-    backgroundColor: '#1a1a1a',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  serviceCardInfo: {
-    marginLeft: 12,
-  },
-  serviceNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  serviceCardName: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  serviceCardDesc: {
-    color: '#6b7280',
-    fontSize: 14,
-    marginTop: 2,
-  },
+  serviceCardInfo: { marginLeft: 12 },
+  serviceCardName: { fontSize: 16, fontWeight: '600' },
+  serviceCardDesc: { fontSize: 13, marginTop: 2 },
   priceAdjuster: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderTopWidth: 1,
-    borderTopColor: '#333',
   },
   priceButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#333',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  priceDisplay: {
-    alignItems: 'center',
-    marginHorizontal: 24,
-  },
-  priceAmount: {
-    color: '#ffffff',
-    fontSize: 32,
-    fontWeight: '700',
-  },
-  priceRecommended: {
-    color: '#6b7280',
-    fontSize: 12,
-    marginTop: 4,
-  },
-  pricePercent: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 2,
-  },
+  priceDisplay: { alignItems: 'center', marginHorizontal: 20 },
+  priceAmount: { fontSize: 28, fontWeight: '700' },
+  priceRecommended: { fontSize: 11, marginTop: 4 },
+  pricePercent: { fontSize: 12, fontWeight: '600', marginTop: 2 },
   priceRange: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: 10,
   },
-  priceRangeText: {
-    color: '#6b7280',
-    fontSize: 11,
-  },
+  priceRangeText: { fontSize: 11 },
   priceRangeBar: {
     flex: 1,
     height: 4,
-    backgroundColor: '#333',
     borderRadius: 2,
     marginHorizontal: 8,
     overflow: 'hidden',
   },
-  priceRangeFill: {
-    height: '100%',
-    backgroundColor: '#c8ff00',
-    borderRadius: 2,
-  },
+  priceRangeFill: { height: '100%', borderRadius: 2 },
   descriptionInput: {
-    backgroundColor: '#262626',
     borderRadius: 12,
-    padding: 16,
-    color: '#ffffff',
+    padding: 14,
     fontSize: 14,
     minHeight: 80,
     textAlignVertical: 'top',
-    marginBottom: 16,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#333',
-  },
-  autoAcceptRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#262626',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  autoAcceptText: {
-    flex: 1,
-    color: '#ffffff',
-    fontSize: 14,
-    marginLeft: 12,
-  },
-  toggleOff: {
-    width: 48,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#333',
-    padding: 2,
-  },
-  toggleCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#6b7280',
-  },
-  submitRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  batteryIndicator: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#262626',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   submitButton: {
-    flex: 1,
-    backgroundColor: '#c8ff00',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
   },
-  submitText: {
-    color: '#1a1a1a',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  filterButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#262626',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  submitText: { fontSize: 16, fontWeight: '700' },
 });
