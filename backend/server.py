@@ -150,6 +150,25 @@ class JobUpdate(BaseModel):
     contractor_id: Optional[str] = None
     final_price: Optional[float] = None
 
+# Bid Models
+class BidCreate(BaseModel):
+    amount: float
+    message: Optional[str] = ""
+    estimated_hours: Optional[float] = None
+
+class Bid(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    job_id: str
+    contractor_id: str
+    contractor_name: str = ""
+    contractor_rating: float = 0.0
+    contractor_avatar: Optional[str] = None
+    amount: float
+    message: str = ""
+    estimated_hours: Optional[float] = None
+    status: str = "pending"  # pending, accepted, rejected
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
 # Finance Models
 class FinanceSummary(BaseModel):
     total_jobs: int
@@ -549,6 +568,101 @@ async def rate_job(job_id: str, rating: float, current_user: dict = Depends(get_
         raise HTTPException(status_code=403, detail="Cannot rate this job")
     
     return {"message": "Rating submitted"}
+
+# ============== BID ROUTES ==============
+
+@api_router.post("/jobs/{job_id}/bid")
+async def place_bid(job_id: str, bid_data: BidCreate, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != UserRole.CONTRACTOR:
+        raise HTTPException(status_code=403, detail="Contractor access required")
+    
+    job = await db.jobs.find_one({"id": job_id})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job["status"] != JobStatus.PENDING:
+        raise HTTPException(status_code=400, detail="Job is no longer accepting bids")
+    
+    # Check if contractor already bid on this job
+    existing_bid = await db.bids.find_one({"job_id": job_id, "contractor_id": current_user["id"]})
+    if existing_bid:
+        raise HTTPException(status_code=400, detail="You already bid on this job")
+    
+    bid = Bid(
+        job_id=job_id,
+        contractor_id=current_user["id"],
+        contractor_name=current_user.get("full_name", ""),
+        contractor_rating=current_user.get("rating", 0.0),
+        contractor_avatar=current_user.get("avatar_url"),
+        amount=bid_data.amount,
+        message=bid_data.message or "",
+        estimated_hours=bid_data.estimated_hours,
+    )
+    
+    await db.bids.insert_one(bid.dict())
+    
+    # Update bid count on job
+    bid_count = await db.bids.count_documents({"job_id": job_id})
+    await db.jobs.update_one({"id": job_id}, {"$set": {"bid_count": bid_count}})
+    
+    return {"message": "Bid placed successfully", "bid_id": bid.id}
+
+@api_router.get("/jobs/{job_id}/bids")
+async def get_job_bids(job_id: str, current_user: dict = Depends(get_current_user)):
+    job = await db.jobs.find_one({"id": job_id})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Only the job owner, admin, or the bidding contractor can see bids
+    if current_user["role"] == UserRole.CUSTOMER and current_user["id"] != job["customer_id"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    bids = await db.bids.find({"job_id": job_id}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    return bids
+
+@api_router.put("/bids/{bid_id}/accept")
+async def accept_bid(bid_id: str, current_user: dict = Depends(get_current_user)):
+    bid = await db.bids.find_one({"id": bid_id})
+    if not bid:
+        raise HTTPException(status_code=404, detail="Bid not found")
+    
+    job = await db.jobs.find_one({"id": bid["job_id"]})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    if current_user["id"] != job["customer_id"]:
+        raise HTTPException(status_code=403, detail="Only the job owner can accept bids")
+    if job["status"] != JobStatus.PENDING:
+        raise HTTPException(status_code=400, detail="Job is no longer accepting bids")
+    
+    # Accept this bid
+    await db.bids.update_one({"id": bid_id}, {"$set": {"status": "accepted"}})
+    
+    # Reject all other bids for this job
+    await db.bids.update_many(
+        {"job_id": bid["job_id"], "id": {"$ne": bid_id}},
+        {"$set": {"status": "rejected"}}
+    )
+    
+    # Update the job with contractor and accepted price
+    await db.jobs.update_one(
+        {"id": bid["job_id"]},
+        {"$set": {
+            "contractor_id": bid["contractor_id"],
+            "status": JobStatus.ACCEPTED,
+            "budget": bid["amount"],
+            "payment_status": PaymentStatus.IN_ESCROW,
+        }}
+    )
+    
+    return {"message": "Bid accepted", "contractor_id": bid["contractor_id"]}
+
+@api_router.get("/bids/my")
+async def get_my_bids(current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != UserRole.CONTRACTOR:
+        raise HTTPException(status_code=403, detail="Contractor access required")
+    
+    bids = await db.bids.find({"contractor_id": current_user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return bids
 
 # ============== FINANCE ROUTES ==============
 

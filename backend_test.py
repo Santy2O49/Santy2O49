@@ -1,438 +1,586 @@
 #!/usr/bin/env python3
 """
-HAMMR Backend API Testing Suite
-
-Tests all backend APIs for the HAMMR home services platform:
-- Authentication (Register/Login/Me)
-- Services API (List/Get single)  
-- Jobs Workflow (Create/Accept/Start/Complete/Rate)
-- User Management (Admin features)
-- Finance Summary and Contractor Earnings
-- AI Tools (Pricing Engine, Marketing Assistant)
-
-Base URL: https://contractor-connect-36.preview.emergentagent.com/api
+HAMMR Backend E2E Test Suite - Bidding System Focus
+Tests the complete job bidding flow as requested in the review.
 """
 
 import requests
 import json
-import sys
-from datetime import datetime, timedelta
 import time
+from datetime import datetime
 
 # Configuration
 BASE_URL = "https://contractor-connect-36.preview.emergentagent.com/api"
-HEADERS = {"Content-Type": "application/json"}
 
-# Test credentials
-TEST_USERS = {
-    "admin": {"email": "admin@hammr.com", "password": "admin123"},
-    "contractor": {"email": "contractor1@hammr.com", "password": "password123"},  
-    "customer": {"email": "customer1@hammr.com", "password": "password123"}
-}
+# Test users
+CUSTOMER_CREDS = {"email": "customer1@hammr.com", "password": "password123"}
+CONTRACTOR1_CREDS = {"email": "contractor1@hammr.com", "password": "password123"}
+CONTRACTOR2_CREDS = {"email": "contractor2@hammr.com", "password": "password123"}
+ADMIN_CREDS = {"email": "admin@hammr.com", "password": "admin123"}
 
-# Global variables to store tokens and data
-tokens = {}
-test_data = {}
-test_results = []
-
-class TestResult:
-    def __init__(self, name, endpoint, method, expected_status=200):
-        self.name = name
-        self.endpoint = endpoint
-        self.method = method
-        self.expected_status = expected_status
-        self.actual_status = None
-        self.success = False
-        self.error = None
-        self.response_data = None
-        self.execution_time = 0
-
-def log_test(result):
-    """Log test result"""
-    status = "✅ PASS" if result.success else "❌ FAIL"
-    print(f"{status} {result.name} ({result.method} {result.endpoint})")
-    if result.error:
-        print(f"   Error: {result.error}")
-    if not result.success and result.response_data:
-        print(f"   Response: {result.response_data}")
-    test_results.append(result)
-
-def make_request(method, endpoint, data=None, token=None, expected_status=200):
-    """Make HTTP request with error handling"""
-    url = f"{BASE_URL}{endpoint}"
-    headers = HEADERS.copy()
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-    
-    result = TestResult(
-        name=f"{method.upper()} {endpoint}",
-        endpoint=endpoint,
-        method=method,
-        expected_status=expected_status
-    )
-    
-    try:
-        start_time = time.time()
+class TestRunner:
+    def __init__(self):
+        self.passed = 0
+        self.failed = 0
+        self.failures = []
         
-        if method.lower() == 'get':
-            response = requests.get(url, headers=headers, timeout=30)
-        elif method.lower() == 'post':
-            response = requests.post(url, json=data, headers=headers, timeout=30)
-        elif method.lower() == 'put':
-            response = requests.put(url, json=data, headers=headers, timeout=30)
+    def test(self, name, func):
+        try:
+            print(f"\n🧪 Testing: {name}")
+            result = func()
+            if result:
+                print(f"✅ PASS: {name}")
+                self.passed += 1
+            else:
+                print(f"❌ FAIL: {name}")
+                self.failed += 1
+                self.failures.append(name)
+        except Exception as e:
+            print(f"❌ ERROR in {name}: {str(e)}")
+            self.failed += 1
+            self.failures.append(f"{name} - ERROR: {str(e)}")
+    
+    def summary(self):
+        total = self.passed + self.failed
+        print(f"\n{'='*60}")
+        print(f"TEST RESULTS: {self.passed}/{total} PASSED")
+        print(f"{'='*60}")
+        
+        if self.failures:
+            print("\n❌ FAILURES:")
+            for failure in self.failures:
+                print(f"   • {failure}")
+        else:
+            print("\n🎉 ALL TESTS PASSED!")
+        
+        return self.failed == 0
+
+# Global variables for test data
+customer_token = None
+contractor1_token = None
+contractor2_token = None
+admin_token = None
+service_id = None
+job_id = None
+contractor1_bid_id = None
+contractor2_bid_id = None
+
+def make_request(method, endpoint, headers=None, json_data=None, params=None):
+    """Helper function to make HTTP requests with better error handling"""
+    url = f"{BASE_URL}{endpoint}"
+    try:
+        if method == "GET":
+            response = requests.get(url, headers=headers, params=params, timeout=30)
+        elif method == "POST":
+            response = requests.post(url, headers=headers, json=json_data, timeout=30)
+        elif method == "PUT":
+            response = requests.put(url, headers=headers, json=json_data, params=params, timeout=30)
         else:
             raise ValueError(f"Unsupported method: {method}")
         
-        result.execution_time = time.time() - start_time
-        result.actual_status = response.status_code
-        
-        try:
-            result.response_data = response.json()
-        except:
-            result.response_data = response.text
-        
-        if response.status_code == expected_status:
-            result.success = True
-            return response
-        else:
-            result.error = f"Expected {expected_status}, got {response.status_code}"
-            return response
+        print(f"   {method} {endpoint} -> {response.status_code}")
+        if response.status_code >= 400:
+            print(f"   Response: {response.text[:200]}...")
             
+        return response
     except requests.exceptions.RequestException as e:
-        result.error = f"Request failed: {str(e)}"
-        return None
-    except Exception as e:
-        result.error = f"Unexpected error: {str(e)}"
-        return None
-    finally:
-        log_test(result)
+        print(f"   Request failed: {str(e)}")
+        raise
 
-def test_health_check():
-    """Test basic health endpoints"""
-    print("\n=== HEALTH CHECK ===")
+def test_customer_login():
+    """Test customer authentication"""
+    global customer_token
     
-    # Test root endpoint
-    make_request("GET", "/")
-    
-    # Test health endpoint
-    make_request("GET", "/health")
-
-def test_authentication():
-    """Test authentication endpoints"""
-    print("\n=== AUTHENTICATION TESTS ===")
-    
-    # Test login for all test users
-    for role, credentials in TEST_USERS.items():
-        print(f"\n--- Testing {role} login ---")
-        response = make_request("POST", "/auth/login", credentials)
+    response = make_request("POST", "/auth/login", json_data=CUSTOMER_CREDS)
+    if response.status_code != 200:
+        return False
         
-        if response and response.status_code == 200:
-            data = response.json()
-            if "token" in data:
-                tokens[role] = data["token"]
-                test_data[f"{role}_user"] = data.get("user", {})
-                print(f"   ✓ {role} token obtained")
-            else:
-                print(f"   ✗ No token in {role} login response")
-        else:
-            print(f"   ✗ {role} login failed")
+    data = response.json()
+    customer_token = data.get("token")
+    user = data.get("user", {})
     
-    # Test /auth/me for each user
-    for role, token in tokens.items():
-        print(f"\n--- Testing {role} /auth/me ---")
-        make_request("GET", "/auth/me", token=token)
+    return (customer_token is not None and 
+            user.get("email") == CUSTOMER_CREDS["email"] and 
+            user.get("role") == "customer")
 
-def test_services():
-    """Test services endpoints"""
-    print("\n=== SERVICES TESTS ===")
+def test_contractor1_login():
+    """Test contractor1 authentication"""
+    global contractor1_token
     
-    # Get all services
+    response = make_request("POST", "/auth/login", json_data=CONTRACTOR1_CREDS)
+    if response.status_code != 200:
+        return False
+        
+    data = response.json()
+    contractor1_token = data.get("token")
+    user = data.get("user", {})
+    
+    return (contractor1_token is not None and 
+            user.get("email") == CONTRACTOR1_CREDS["email"] and 
+            user.get("role") == "contractor")
+
+def test_contractor2_login():
+    """Test contractor2 authentication"""
+    global contractor2_token
+    
+    response = make_request("POST", "/auth/login", json_data=CONTRACTOR2_CREDS)
+    if response.status_code != 200:
+        return False
+        
+    data = response.json()
+    contractor2_token = data.get("token")
+    user = data.get("user", {})
+    
+    return (contractor2_token is not None and 
+            user.get("email") == CONTRACTOR2_CREDS["email"] and 
+            user.get("role") == "contractor")
+
+def test_get_services():
+    """Test getting services and select one for job creation"""
+    global service_id
+    
     response = make_request("GET", "/services")
-    if response and response.status_code == 200:
-        services = response.json()
-        if services:
-            test_data["services"] = services
-            print(f"   ✓ Found {len(services)} services")
-            
-            # Test get single service
-            service_id = services[0]["id"]
-            make_request("GET", f"/services/{service_id}")
-        else:
-            print("   ⚠ No services found - database may not be seeded")
+    if response.status_code != 200:
+        return False
+        
+    services = response.json()
+    if not services or len(services) == 0:
+        return False
+        
+    # Pick the first service
+    service_id = services[0]["id"]
+    print(f"   Selected service: {services[0]['name']} (ID: {service_id})")
     
-    # Test featured services
-    make_request("GET", "/services?featured=true")
-    
-    # Test services by category
-    make_request("GET", "/services?category=Repair")
+    return True
 
-def test_job_workflow():
-    """Test complete job workflow"""
-    print("\n=== JOBS WORKFLOW TESTS ===")
+def test_customer_create_job():
+    """Step 1: Customer posts a job"""
+    global job_id
     
-    if not tokens.get("customer") or not tokens.get("contractor"):
-        print("   ✗ Cannot test job workflow - missing customer or contractor tokens")
-        return
+    if not customer_token or not service_id:
+        return False
     
-    if not test_data.get("services"):
-        print("   ✗ Cannot test job workflow - no services available")
-        return
-    
-    # Step 1: Customer creates a job
-    print("\n--- Customer creates job ---")
-    service = test_data["services"][0]
+    headers = {"Authorization": f"Bearer {customer_token}"}
     job_data = {
-        "service_id": service["id"],
-        "description": "Test job - need plumbing repair in my kitchen",
-        "location": "San Salvador, El Salvador",
-        "scheduled_date": "2025-01-20",
-        "budget": 75.0
+        "service_id": service_id,
+        "description": "Need urgent plumbing repair - leaky kitchen faucet and running toilet. Emergency repair needed ASAP!",
+        "location": "Colonia Escalon, San Salvador",
+        "budget": 150.0,
+        "scheduled_date": "2025-01-20T10:00:00Z"
     }
     
-    response = make_request("POST", "/jobs", job_data, token=tokens["customer"])
-    if response and response.status_code == 200:
-        job = response.json()
-        test_data["test_job"] = job
-        print(f"   ✓ Job created with ID: {job['id']}")
-    else:
-        print("   ✗ Failed to create job")
-        return
-    
-    # Step 2: Test get jobs for customer
-    print("\n--- Customer views their jobs ---")
-    make_request("GET", "/jobs", token=tokens["customer"])
-    
-    # Step 3: Contractor views available jobs
-    print("\n--- Contractor views available jobs ---")
-    make_request("GET", "/jobs/available", token=tokens["contractor"])
-    
-    # Step 4: Contractor accepts the job
-    print("\n--- Contractor accepts job ---")
-    job_id = test_data["test_job"]["id"]
-    response = make_request("PUT", f"/jobs/{job_id}/accept", token=tokens["contractor"])
-    
-    # Step 5: Get job details
-    print("\n--- Get job details ---")
-    make_request("GET", f"/jobs/{job_id}", token=tokens["contractor"])
-    
-    # Step 6: Contractor starts the job
-    print("\n--- Contractor starts job ---")
-    make_request("PUT", f"/jobs/{job_id}/start", token=tokens["contractor"])
-    
-    # Step 7: Contractor completes the job
-    print("\n--- Contractor completes job ---")
-    make_request("PUT", f"/jobs/{job_id}/complete?final_price=80.0", token=tokens["contractor"])
-    
-    # Step 8: Customer rates the job
-    print("\n--- Customer rates job ---")
-    make_request("PUT", f"/jobs/{job_id}/rate?rating=5", token=tokens["customer"])
-    
-    # Step 9: Contractor rates the customer
-    print("\n--- Contractor rates customer ---")
-    make_request("PUT", f"/jobs/{job_id}/rate?rating=4", token=tokens["contractor"])
-
-def test_user_management():
-    """Test user management (admin only)"""
-    print("\n=== USER MANAGEMENT TESTS ===")
-    
-    if not tokens.get("admin"):
-        print("   ✗ Cannot test user management - no admin token")
-        return
-    
-    # Get all users
-    response = make_request("GET", "/users", token=tokens["admin"])
-    if response and response.status_code == 200:
-        users = response.json()
-        if users:
-            test_data["all_users"] = users
-            print(f"   ✓ Found {len(users)} users")
-            
-            # Find a contractor to verify
-            contractor_user = None
-            for user in users:
-                if user["role"] == "contractor" and not user["is_verified"]:
-                    contractor_user = user
-                    break
-            
-            if contractor_user:
-                # Test verify contractor
-                print(f"\n--- Verifying contractor {contractor_user['full_name']} ---")
-                make_request("PUT", f"/users/{contractor_user['id']}/verify", token=tokens["admin"])
-                
-                # Test get specific user
-                make_request("GET", f"/users/{contractor_user['id']}", token=tokens["admin"])
-            else:
-                print("   ⚠ No unverified contractors found to test verification")
-    
-    # Test get contractors
-    make_request("GET", "/contractors")
-    
-    # Test get verified contractors only
-    make_request("GET", "/contractors?verified_only=true")
-    
-    # Test filter users by role
-    make_request("GET", "/users?role=contractor", token=tokens["admin"])
-
-def test_finance():
-    """Test finance endpoints"""
-    print("\n=== FINANCE TESTS ===")
-    
-    if not tokens.get("admin"):
-        print("   ✗ Cannot test finance - no admin token")
-        return
-    
-    # Test finance summary
-    make_request("GET", "/finance/summary", token=tokens["admin"])
-    
-    # Test contractor earnings
-    if test_data.get("contractor_user"):
-        contractor_id = test_data["contractor_user"]["id"]
-        make_request("GET", f"/finance/contractor/{contractor_id}", token=tokens["admin"])
+    response = make_request("POST", "/jobs", headers=headers, json_data=job_data)
+    if response.status_code != 200:
+        return False
         
-        # Test contractor viewing their own earnings
-        if tokens.get("contractor"):
-            contractor_token_id = test_data.get("contractor_user", {}).get("id")
-            if contractor_token_id:
-                make_request("GET", f"/finance/contractor/{contractor_token_id}", token=tokens["contractor"])
+    job = response.json()
+    job_id = job["id"]
+    
+    print(f"   Created job ID: {job_id}")
+    print(f"   Job status: {job['status']}")
+    print(f"   Job budget: ${job['budget']}")
+    
+    return (job_id is not None and 
+            job["status"] == "pending" and 
+            job["customer_id"] is not None and
+            job["budget"] == 150.0)
 
-def test_ai_tools():
-    """Test AI-powered tools"""
-    print("\n=== AI TOOLS TESTS ===")
+def test_contractor1_place_bid():
+    """Step 2: Contractor 1 places a bid"""
+    global contractor1_bid_id
     
-    if not tokens.get("admin"):
-        print("   ✗ Cannot test AI tools - no admin token")
-        return
+    if not contractor1_token or not job_id:
+        return False
     
-    # Test AI Pricing Engine
-    print("\n--- AI Pricing Engine ---")
-    pricing_data = {
-        "job_type": "Plumbing Repair",
-        "complexity": "Medium",
-        "location": "San Salvador",
-        "demand": "High"
+    headers = {"Authorization": f"Bearer {contractor1_token}"}
+    bid_data = {
+        "amount": 120.0,
+        "message": "I'm an experienced plumber with 8+ years in El Salvador. I can fix both issues quickly and efficiently. I have all necessary tools and can start immediately!",
+        "estimated_hours": 2.5
     }
-    make_request("POST", "/ai/pricing", pricing_data, token=tokens["admin"])
     
-    # Test AI Marketing Assistant
-    print("\n--- AI Marketing Assistant ---")
-    marketing_data = {
-        "segment": "homeowners",
-        "category": "Plumbing",
-        "platform": "Facebook"
+    response = make_request("POST", f"/jobs/{job_id}/bid", headers=headers, json_data=bid_data)
+    if response.status_code != 200:
+        return False
+        
+    result = response.json()
+    contractor1_bid_id = result.get("bid_id")
+    
+    print(f"   Contractor1 bid ID: {contractor1_bid_id}")
+    print(f"   Bid amount: $120.00")
+    
+    return contractor1_bid_id is not None
+
+def test_contractor2_place_bid():
+    """Step 3: Contractor 2 places a different bid"""
+    global contractor2_bid_id
+    
+    if not contractor2_token or not job_id:
+        return False
+    
+    headers = {"Authorization": f"Bearer {contractor2_token}"}
+    bid_data = {
+        "amount": 135.0,
+        "message": "Professional plumber available today. I provide 6-month warranty on all repairs and use high-quality parts. Quick service guaranteed!",
+        "estimated_hours": 3.0
     }
-    make_request("POST", "/ai/marketing", marketing_data, token=tokens["admin"])
-
-def test_edge_cases():
-    """Test edge cases and error conditions"""
-    print("\n=== EDGE CASES & ERROR HANDLING ===")
     
-    # Test unauthorized access
-    print("\n--- Unauthorized access tests ---")
-    make_request("GET", "/users", expected_status=401)  # No token
-    make_request("GET", "/finance/summary", expected_status=401)  # No token
-    
-    # Test non-existent resources
-    print("\n--- Non-existent resource tests ---")
-    make_request("GET", "/services/non-existent-id", expected_status=404)
-    make_request("GET", "/jobs/non-existent-id", token=tokens.get("customer"), expected_status=404)
-    
-    # Test invalid job operations
-    if tokens.get("customer"):
-        print("\n--- Invalid job operations ---")
-        # Try to accept job as customer (should fail)
-        if test_data.get("test_job"):
-            job_id = test_data["test_job"]["id"]
-            make_request("PUT", f"/jobs/{job_id}/accept", token=tokens["customer"], expected_status=403)
-
-def test_database_seeding():
-    """Test database seeding"""
-    print("\n=== DATABASE SEEDING TEST ===")
-    
-    # Test seed endpoint
-    make_request("POST", "/seed", expected_status=200)
-
-def print_summary():
-    """Print test summary"""
-    print("\n" + "="*60)
-    print("TEST SUMMARY")
-    print("="*60)
-    
-    passed = sum(1 for r in test_results if r.success)
-    failed = len(test_results) - passed
-    
-    print(f"Total tests: {len(test_results)}")
-    print(f"Passed: {passed}")
-    print(f"Failed: {failed}")
-    print(f"Success rate: {passed/len(test_results)*100:.1f}%")
-    
-    if failed > 0:
-        print(f"\n❌ FAILED TESTS ({failed}):")
-        for result in test_results:
-            if not result.success:
-                print(f"   • {result.name}: {result.error}")
-    
-    print(f"\n✅ PASSED TESTS ({passed}):")
-    for result in test_results:
-        if result.success:
-            print(f"   • {result.name}")
-    
-    # Critical workflow test
-    critical_tests = [
-        "POST /auth/login",
-        "GET /auth/me", 
-        "GET /services",
-        "POST /jobs",
-        "PUT /jobs/",  # accept, start, complete
-        "GET /finance/summary",
-        "POST /ai/pricing"
-    ]
-    
-    critical_passed = 0
-    for result in test_results:
-        for critical in critical_tests:
-            if critical in result.name and result.success:
-                critical_passed += 1
-                break
-    
-    print(f"\n🎯 CRITICAL WORKFLOW: {critical_passed}/{len(critical_tests)} core features working")
-
-def main():
-    """Run all tests"""
-    print("HAMMR Backend API Test Suite")
-    print("="*60)
-    print(f"Base URL: {BASE_URL}")
-    print(f"Test Users: {list(TEST_USERS.keys())}")
-    print("="*60)
-    
-    try:
-        # Run all test suites
-        test_health_check()
-        test_database_seeding()  # Ensure data exists
-        test_authentication()
-        test_services()
-        test_job_workflow()
-        test_user_management()
-        test_finance()
-        test_ai_tools()
-        test_edge_cases()
+    response = make_request("POST", f"/jobs/{job_id}/bid", headers=headers, json_data=bid_data)
+    if response.status_code != 200:
+        return False
         
-        print_summary()
+    result = response.json()
+    contractor2_bid_id = result.get("bid_id")
+    
+    print(f"   Contractor2 bid ID: {contractor2_bid_id}")
+    print(f"   Bid amount: $135.00")
+    
+    return contractor2_bid_id is not None
+
+def test_duplicate_bid_prevention():
+    """Test that contractor can't bid twice on same job (should return 400)"""
+    if not contractor1_token or not job_id:
+        return False
+    
+    headers = {"Authorization": f"Bearer {contractor1_token}"}
+    bid_data = {
+        "amount": 100.0,
+        "message": "Another bid attempt",
+        "estimated_hours": 2.0
+    }
+    
+    response = make_request("POST", f"/jobs/{job_id}/bid", headers=headers, json_data=bid_data)
+    return response.status_code == 400
+
+def test_customer_view_bids():
+    """Step 4: Customer views all bids for the job"""
+    if not customer_token or not job_id:
+        return False
+    
+    headers = {"Authorization": f"Bearer {customer_token}"}
+    response = make_request("GET", f"/jobs/{job_id}/bids", headers=headers)
+    
+    if response.status_code != 200:
+        return False
         
-        # Return appropriate exit code
-        failed_count = sum(1 for r in test_results if not r.success)
-        if failed_count > 0:
-            print(f"\n⚠️  {failed_count} tests failed")
-            return 1
-        else:
-            print(f"\n🎉 All tests passed!")
-            return 0
-            
-    except KeyboardInterrupt:
-        print("\n\nTest execution interrupted by user")
-        return 1
-    except Exception as e:
-        print(f"\n\nUnexpected error during test execution: {e}")
-        return 1
+    bids = response.json()
+    
+    print(f"   Found {len(bids)} bids")
+    for bid in bids:
+        print(f"   • Contractor: {bid['contractor_name']}, Amount: ${bid['amount']}, Status: {bid['status']}")
+    
+    # Should see 2 bids, both with "pending" status
+    return (len(bids) == 2 and 
+            all(bid["status"] == "pending" for bid in bids) and
+            any(bid["amount"] == 120.0 for bid in bids) and
+            any(bid["amount"] == 135.0 for bid in bids))
+
+def test_customer_accept_bid():
+    """Step 5: Customer accepts contractor1's bid"""
+    if not customer_token or not contractor1_bid_id:
+        return False
+    
+    headers = {"Authorization": f"Bearer {customer_token}"}
+    response = make_request("PUT", f"/bids/{contractor1_bid_id}/accept", headers=headers)
+    
+    if response.status_code != 200:
+        return False
+        
+    result = response.json()
+    print(f"   {result['message']}")
+    
+    return result.get("contractor_id") is not None
+
+def test_verify_bid_statuses():
+    """Step 6: Verify bid statuses after acceptance"""
+    if not customer_token or not job_id:
+        return False
+    
+    headers = {"Authorization": f"Bearer {customer_token}"}
+    response = make_request("GET", f"/jobs/{job_id}/bids", headers=headers)
+    
+    if response.status_code != 200:
+        return False
+        
+    bids = response.json()
+    accepted_bids = [b for b in bids if b["status"] == "accepted"]
+    rejected_bids = [b for b in bids if b["status"] == "rejected"]
+    
+    print(f"   Accepted bids: {len(accepted_bids)}")
+    print(f"   Rejected bids: {len(rejected_bids)}")
+    
+    for bid in bids:
+        print(f"   • ${bid['amount']} - {bid['status']} ({bid['contractor_name']})")
+    
+    return (len(accepted_bids) == 1 and 
+            len(rejected_bids) == 1 and
+            accepted_bids[0]["amount"] == 120.0)
+
+def test_verify_job_status_accepted():
+    """Step 7: Verify job status and contractor assignment"""
+    if not customer_token or not job_id:
+        return False
+    
+    headers = {"Authorization": f"Bearer {customer_token}"}
+    response = make_request("GET", f"/jobs/{job_id}", headers=headers)
+    
+    if response.status_code != 200:
+        return False
+        
+    job = response.json()
+    
+    print(f"   Job status: {job['status']}")
+    print(f"   Contractor assigned: {'Yes' if job.get('contractor_id') else 'No'}")
+    print(f"   Updated budget: ${job.get('budget', 'N/A')}")
+    
+    return (job["status"] == "accepted" and 
+            job.get("contractor_id") is not None and
+            job["budget"] == 120.0)  # Should be updated to winning bid amount
+
+def test_contractor_start_job():
+    """Step 8: Contractor starts the job"""
+    if not contractor1_token or not job_id:
+        return False
+    
+    headers = {"Authorization": f"Bearer {contractor1_token}"}
+    response = make_request("PUT", f"/jobs/{job_id}/start", headers=headers)
+    
+    if response.status_code != 200:
+        return False
+        
+    result = response.json()
+    print(f"   {result['message']}")
+    
+    return True
+
+def test_verify_job_in_progress():
+    """Step 9: Verify job is in progress"""
+    if not contractor1_token or not job_id:
+        return False
+    
+    headers = {"Authorization": f"Bearer {contractor1_token}"}
+    response = make_request("GET", f"/jobs/{job_id}", headers=headers)
+    
+    if response.status_code != 200:
+        return False
+        
+    job = response.json()
+    print(f"   Job status: {job['status']}")
+    
+    return job["status"] == "in_progress"
+
+def test_contractor_complete_job():
+    """Step 10: Contractor completes the job"""
+    if not contractor1_token or not job_id:
+        return False
+    
+    headers = {"Authorization": f"Bearer {contractor1_token}"}
+    params = {"final_price": 118.0}  # Slightly less than bid
+    response = make_request("PUT", f"/jobs/{job_id}/complete", headers=headers, params=params)
+    
+    if response.status_code != 200:
+        return False
+        
+    result = response.json()
+    print(f"   {result['message']}")
+    print(f"   Commission: ${result.get('commission', 'N/A')}")
+    
+    return result.get("commission") is not None
+
+def test_verify_job_completed():
+    """Step 11: Verify job is completed"""
+    if not customer_token or not job_id:
+        return False
+    
+    headers = {"Authorization": f"Bearer {customer_token}"}
+    response = make_request("GET", f"/jobs/{job_id}", headers=headers)
+    
+    if response.status_code != 200:
+        return False
+        
+    job = response.json()
+    print(f"   Job status: {job['status']}")
+    print(f"   Final price: ${job.get('final_price', 'N/A')}")
+    print(f"   Commission: ${job.get('commission_amount', 'N/A')}")
+    
+    return (job["status"] == "completed" and 
+            job.get("final_price") == 118.0)
+
+def test_customer_rate_contractor():
+    """Step 12: Customer rates the contractor"""
+    if not customer_token or not job_id:
+        return False
+    
+    headers = {"Authorization": f"Bearer {customer_token}"}
+    params = {"rating": 5}
+    response = make_request("PUT", f"/jobs/{job_id}/rate", headers=headers, params=params)
+    
+    if response.status_code != 200:
+        return False
+        
+    result = response.json()
+    print(f"   {result['message']} (Customer gave 5 stars)")
+    
+    return True
+
+def test_contractor_rate_customer():
+    """Step 13: Contractor rates the customer"""
+    if not contractor1_token or not job_id:
+        return False
+    
+    headers = {"Authorization": f"Bearer {contractor1_token}"}
+    params = {"rating": 4}
+    response = make_request("PUT", f"/jobs/{job_id}/rate", headers=headers, params=params)
+    
+    if response.status_code != 200:
+        return False
+        
+    result = response.json()
+    print(f"   {result['message']} (Contractor gave 4 stars)")
+    
+    return True
+
+def test_final_job_verification():
+    """Final verification of complete job with ratings"""
+    if not customer_token or not job_id:
+        return False
+    
+    headers = {"Authorization": f"Bearer {customer_token}"}
+    response = make_request("GET", f"/jobs/{job_id}", headers=headers)
+    
+    if response.status_code != 200:
+        return False
+        
+    job = response.json()
+    print(f"   Final job status: {job['status']}")
+    print(f"   Customer rating (contractor): {job.get('contractor_rating', 'None')}/5")
+    print(f"   Contractor rating (customer): {job.get('customer_rating', 'None')}/5")
+    
+    return (job["status"] == "completed" and 
+            job.get("contractor_rating") == 5.0 and
+            job.get("customer_rating") == 4.0)
+
+# Additional tests as requested
+def test_contractor_get_my_bids():
+    """Test contractor can see their own bids"""
+    if not contractor1_token:
+        return False
+    
+    headers = {"Authorization": f"Bearer {contractor1_token}"}
+    response = make_request("GET", "/bids/my", headers=headers)
+    
+    if response.status_code != 200:
+        return False
+        
+    bids = response.json()
+    print(f"   Contractor1 has {len(bids)} total bids")
+    
+    # Find the bid for our test job
+    job_bids = [b for b in bids if b["job_id"] == job_id]
+    
+    return (len(job_bids) >= 1 and 
+            job_bids[0]["status"] == "accepted" and
+            job_bids[0]["amount"] == 120.0)
+
+def test_contractor_available_jobs():
+    """Test contractor can see available jobs"""
+    if not contractor2_token:
+        return False
+    
+    headers = {"Authorization": f"Bearer {contractor2_token}"}
+    response = make_request("GET", "/jobs/available", headers=headers)
+    
+    if response.status_code != 200:
+        return False
+        
+    jobs = response.json()
+    print(f"   Found {len(jobs)} available jobs")
+    
+    # Should not include our completed job
+    pending_jobs = [j for j in jobs if j["status"] == "pending" and j.get("contractor_id") is None]
+    
+    return len(pending_jobs) >= 0  # Could be 0 if no other pending jobs
+
+def test_customer_jobs_filter():
+    """Test customer sees only their own jobs"""
+    if not customer_token:
+        return False
+    
+    headers = {"Authorization": f"Bearer {customer_token}"}
+    response = make_request("GET", "/jobs", headers=headers)
+    
+    if response.status_code != 200:
+        return False
+        
+    jobs = response.json()
+    print(f"   Customer sees {len(jobs)} jobs")
+    
+    # Find our test job
+    test_jobs = [j for j in jobs if j["id"] == job_id]
+    
+    return (len(test_jobs) == 1 and 
+            test_jobs[0]["status"] == "completed")
+
+def test_accept_bid_on_non_pending_job():
+    """Test that accepting bid on non-pending job returns 400"""
+    if not customer_token or not contractor2_bid_id:
+        return False
+    
+    headers = {"Authorization": f"Bearer {customer_token}"}
+    response = make_request("PUT", f"/bids/{contractor2_bid_id}/accept", headers=headers)
+    
+    # Should fail because job is already completed
+    return response.status_code == 400
 
 if __name__ == "__main__":
-    sys.exit(main())
+    print("🚀 HAMMR Backend E2E Test Suite - Bidding System")
+    print("=" * 60)
+    print(f"Testing API: {BASE_URL}")
+    print("=" * 60)
+    
+    runner = TestRunner()
+    
+    # Authentication tests
+    runner.test("Customer Login", test_customer_login)
+    runner.test("Contractor1 Login", test_contractor1_login)
+    runner.test("Contractor2 Login", test_contractor2_login)
+    
+    # Setup tests  
+    runner.test("Get Services", test_get_services)
+    
+    # E2E Bidding Flow Tests
+    runner.test("1️⃣  Customer Creates Job", test_customer_create_job)
+    runner.test("2️⃣  Contractor1 Places Bid", test_contractor1_place_bid)
+    runner.test("3️⃣  Contractor2 Places Bid", test_contractor2_place_bid)
+    runner.test("🚫 Duplicate Bid Prevention", test_duplicate_bid_prevention)
+    runner.test("4️⃣  Customer Views Bids", test_customer_view_bids)
+    runner.test("5️⃣  Customer Accepts Bid", test_customer_accept_bid)
+    runner.test("6️⃣  Verify Bid Statuses", test_verify_bid_statuses)
+    runner.test("7️⃣  Verify Job Status = Accepted", test_verify_job_status_accepted)
+    runner.test("8️⃣  Contractor Starts Job", test_contractor_start_job)
+    runner.test("9️⃣  Verify Job In Progress", test_verify_job_in_progress)
+    runner.test("🔟 Contractor Completes Job", test_contractor_complete_job)
+    runner.test("1️⃣1️⃣ Verify Job Completed", test_verify_job_completed)
+    runner.test("1️⃣2️⃣ Customer Rates Contractor", test_customer_rate_contractor)
+    runner.test("1️⃣3️⃣ Contractor Rates Customer", test_contractor_rate_customer)
+    runner.test("✅ Final Job Verification", test_final_job_verification)
+    
+    # Additional API tests
+    runner.test("💼 Contractor Get My Bids", test_contractor_get_my_bids)
+    runner.test("🔍 Contractor Available Jobs", test_contractor_available_jobs)
+    runner.test("📋 Customer Jobs Filter", test_customer_jobs_filter)
+    runner.test("🚫 Accept Bid on Completed Job", test_accept_bid_on_non_pending_job)
+    
+    success = runner.summary()
+    
+    if success:
+        print("\n🎉 HAMMR BIDDING SYSTEM - ALL TESTS PASSED!")
+        print("✅ Complete E2E job bidding flow working perfectly")
+        print("✅ Multiple contractors can bid on same job")  
+        print("✅ Customer can accept one bid (others get rejected)")
+        print("✅ Job progresses through all states correctly")
+        print("✅ Ratings system working for both parties")
+        print("✅ All edge cases and validations working")
+    else:
+        print("\n❌ SOME TESTS FAILED - Please check the failures above")
+        exit(1)

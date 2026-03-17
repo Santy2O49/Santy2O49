@@ -62,8 +62,23 @@ export interface Job {
   payment_status: PaymentStatus;
   customer_rating?: number;
   contractor_rating?: number;
+  bid_count?: number;
   created_at: string;
   completed_at?: string;
+}
+
+export interface Bid {
+  id: string;
+  job_id: string;
+  contractor_id: string;
+  contractor_name: string;
+  contractor_rating: number;
+  contractor_avatar?: string;
+  amount: number;
+  message: string;
+  estimated_hours?: number;
+  status: string;
+  created_at: string;
 }
 
 export interface FinanceSummary {
