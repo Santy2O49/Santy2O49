@@ -29,9 +29,10 @@ HAMMR is an "Uber for home services" platform for El Salvador. Three interconnec
 ### Customer App
 - [x] Dark/Light theme switching (via Zustand store)
 - [x] Custom sidebar drawer (hamburger menu)
-- [x] Map integration (OpenStreetMap, dark/light adaptive)
+- [x] Platform-specific map: OpenStreetMap iframe (web) + react-native-maps (native)
+- [x] Map supports dark/light theme (CSS filter for web, customMapStyle for native)
 - [x] Service categories & featured services list
-- [x] Service request screen with price negotiation slider
+- [x] Service request with price negotiation: 25% reduction allowed + manual price entry
 - [x] Jobs list with filtering (All/Active/Completed)
 - [x] Profile with edit, avatar upload, stats
 - [x] Settings with theme toggle, language selection
@@ -48,7 +49,6 @@ HAMMR is an "Uber for home services" platform for El Salvador. Three interconnec
 - [x] User management (verify/block)
 - [x] Jobs monitoring
 - [x] Finance overview
-- [x] AI pricing engine & marketing assistant
 
 ### Backend
 - [x] Full CRUD for users, services, jobs
@@ -56,7 +56,11 @@ HAMMR is an "Uber for home services" platform for El Salvador. Three interconnec
 - [x] Rating system (mutual)
 - [x] Finance/earnings tracking
 - [x] Database seeding
-- [x] AI integrations (Gemini)
+
+## Key Architecture Decision: Maps
+- `MapComponent.tsx` (web): Uses OpenStreetMap iframe with CSS filter for dark mode
+- `MapComponent.native.tsx` (native): Uses react-native-maps with Google Maps dark style
+- Metro resolves the correct file based on platform automatically
 
 ## DB Schema
 - **users:** id, email, password, role, full_name, phone, rating, is_verified
@@ -75,7 +79,7 @@ HAMMR is an "Uber for home services" platform for El Salvador. Three interconnec
 ### P1
 - Admin sidebar navigation for web/tablet
 - Real-time push notifications
-- Price negotiation backend logic
+- Price negotiation backend logic (store proposed price)
 
 ### P2
 - Payment integration (Stripe)
