@@ -1,0 +1,160 @@
+{
+  "identity": {
+    "name": "E1 - The Anti-AI Designer",
+    "tone": "The Performance Pro",
+    "core_principles": [
+      "Fusion over Imitation: Mix technical IDE aesthetics with cinematic calm.",
+      "Density is King: High information density, zero clutter.",
+      "Motion is Feedback: Instant response (100ms), no bounce.",
+      "Contrast is Guide: Use brightness, not color, to guide the eye."
+    ],
+    "anti_patterns": [
+      "No generic 'SaaS Blue' or 'Bootstrap' layouts.",
+      "No rounded 'Apple-style' cards (max 4px radius).",
+      "No infinite gradients without purpose.",
+      "No 'Inter' font for headings."
+    ]
+  },
+  "typography": {
+    "font_family": {
+      "headings": "JetBrains Mono, monospace",
+      "body": "IBM Plex Sans, sans-serif",
+      "code": "JetBrains Mono, monospace"
+    },
+    "scale": {
+      "h1": "text-4xl font-bold tracking-tight",
+      "h2": "text-2xl font-semibold tracking-tight",
+      "h3": "text-xl font-medium",
+      "body_lg": "text-lg leading-relaxed",
+      "body": "text-base leading-relaxed",
+      "caption": "text-sm text-muted-foreground",
+      "tiny": "text-xs uppercase tracking-widest text-muted-foreground"
+    },
+    "imports": [
+      "@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');"
+    ]
+  },
+  "colors": {
+    "palette": {
+      "name": "Deep Void Protocol",
+      "background": "#09090b",
+      "surface": "#121212",
+      "surface_highlight": "#18181b",
+      "border": "#27272a",
+      "primary": "#fafafa",
+      "secondary": "#a1a1aa",
+      "accent": "#3b82f6",
+      "success": "#22c55e",
+      "warning": "#eab308",
+      "error": "#ef4444",
+      "selection": "#3b82f640"
+    },
+    "tokens": {
+      "bg-app": "bg-[#09090b]",
+      "bg-panel": "bg-[#121212]",
+      "border-subtle": "border-[#27272a]",
+      "text-primary": "text-[#fafafa]",
+      "text-secondary": "text-[#a1a1aa]",
+      "text-accent": "text-[#3b82f6]",
+      "glow-active": "shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+    }
+  },
+  "layout": {
+    "grid_system": "Bento Mode B (High Density)",
+    "spacing": {
+      "container_padding": "p-4 md:p-6",
+      "panel_gap": "gap-2",
+      "internal_padding": "p-3"
+    },
+    "structure": {
+      "sidebar": "w-16 hover:w-64 transition-all duration-200 border-r border-border bg-panel z-50",
+      "main_area": "flex-1 overflow-hidden flex flex-col relative",
+      "panels": "h-full w-full relative border border-border bg-panel overflow-hidden"
+    },
+    "z_index": {
+      "toast": 100,
+      "modal": 90,
+      "dropdown": 80,
+      "sticky_header": 50,
+      "default": 1
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-background hover:bg-primary/90 h-9 px-4 rounded-[2px] font-medium transition-colors text-sm",
+      "secondary": "bg-secondary/10 text-primary hover:bg-secondary/20 h-9 px-4 rounded-[2px] font-medium transition-colors text-sm border border-border",
+      "ghost": "hover:bg-accent/10 hover:text-accent h-9 px-3 rounded-[2px] transition-colors text-sm",
+      "icon": "h-8 w-8 p-0 rounded-[2px] hover:bg-accent/10 hover:text-accent flex items-center justify-center transition-colors"
+    },
+    "inputs": {
+      "default": "bg-transparent border-b border-border focus:border-accent outline-none h-10 px-0 transition-colors placeholder:text-muted-foreground/50 font-mono text-sm w-full",
+      "search": "bg-secondary/5 border border-border rounded-[2px] px-3 h-9 text-sm focus:ring-1 focus:ring-accent outline-none w-full font-sans"
+    },
+    "cards": {
+      "default": "bg-panel border border-border rounded-[4px] p-4 relative overflow-hidden group",
+      "hover_effect": "hover:border-accent/50 transition-colors duration-200"
+    },
+    "toggles": {
+      "container": "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+      "thumb": "pointer-events-none block h-3 w-3 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-1"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": "backdrop-blur-md bg-background/80 border-b border-border",
+    "glow": "shadow-[0_0_20px_-5px_var(--accent)]",
+    "scanlines": "bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))]",
+    "noise": "bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIi8+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMzMzMiLz4KPC9zdmc+')] opacity-[0.03]"
+  },
+  "motion": {
+    "transition_fast": "transition-all duration-100 ease-out",
+    "transition_normal": "transition-all duration-200 ease-out",
+    "enter_animation": "animate-in fade-in zoom-in-95 duration-100",
+    "hover_lift": "hover:-translate-y-[1px] transition-transform duration-100"
+  },
+  "accessibility": {
+    "focus_ring": "focus-visible:ring-1 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+    "contrast_check": "Ensure all text on bg-panel is at least text-secondary (Zinc 400) or lighter."
+  },
+  "image_urls": {
+    "project_thumbnails": [
+      "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1558494949-ef2bb6db8744?auto=format&fit=crop&w=800&q=80"
+    ],
+    "empty_states": [
+      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  "instructions_to_main_agent": [
+    "1. IMPLEMENTATION: Start by updating `index.css` with the Color Palette CSS Variables and Imports.",
+    "2. COMPONENT OVERRIDE: Modify Shadcn components (Button, Input, Card) to remove rounded-md and use rounded-[2px] or rounded-[4px] for a sharper look.",
+    "3. LAYOUT: Build the main Dashboard layout using a resizable panel library (react-resizable-panels) if available, or CSS Grid.",
+    "4. TOGGLES: Ensure the Internet Access and File System Access toggles are prominent in the Settings or Header.",
+    "5. MODEL SELECTOR: Place this in the top right header. Make it a 'combobox' style dropdown.",
+    "6. THEME: Force Dark Mode by default. Do not create a light mode toggle unless necessary (user preferred dark).",
+    "7. ICONS: Use Lucide-React (default). Stroke width 1.5px for elegance.",
+    "8. PROJECT MANAGER: Create a grid of cards for projects. Use the 'project_thumbnails' for backgrounds with a heavy dark overlay.",
+    "9. TERMINAL: Use a dark background (#09090b) with bright green/blue text. Font MUST be JetBrains Mono."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "You tend to converge toward generic, 'on distribution' outputs. In frontend design, this creates what users call the 'AI slop' aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight.",
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy",
+    "Use glass-morphism effects with backdrop filters (12-24px blur)",
+    "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
+    "You MUST NOT center align the app container, ie do not add .App { text-align: center; } in the css file. This disrupts the human natural reading flow of text",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯📚🎭🎬🎪🎉🎊🎁🎀🎂🍰🎈🎨🎰💰💵💳🏦💎🪙💸🤑📊📈📉💹🔢🏆🥇 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+    "Main agent relies on these image URLs. Missing categories (especially sponsor logos) = main agent will use placeholder text which is FORBIDDEN",
+    "Prioritize using pre-existing components from src/components/ui when applicable",
+    "Create new components that match the style and conventions of existing components when needed",
+    "Examine existing components to understand the project's component patterns before creating new ones",
+    "Components MUST use named exports (export const ComponentName = ...)",
+    "Pages MUST use default exports (export default function PageName() {...})",
+    "Use sonner for toasts. Sonner component are located in /app/src/components/ui/sonner.tsx"
+  ]
+}
