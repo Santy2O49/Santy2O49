@@ -60,6 +60,10 @@ export default function ContractorLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="chat"
+        options={{ href: null }}
+      />
     </Tabs>
   );
 }

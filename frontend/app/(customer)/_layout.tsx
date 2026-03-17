@@ -78,6 +78,10 @@ export default function CustomerLayout() {
           name="request"
           options={{ href: null }}
         />
+        <Tabs.Screen
+          name="chat"
+          options={{ href: null }}
+        />
       </Tabs>
 
       <CustomDrawer visible={drawerOpen} onClose={() => setDrawerOpen(false)} />

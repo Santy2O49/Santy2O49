@@ -82,6 +82,7 @@ class User(UserBase):
     skills: List[str] = []
     about_me: Optional[str] = None
     location: str = "San Salvador"
+    wallet_balance: float = 0.0
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class UserResponse(BaseModel):
@@ -98,6 +99,7 @@ class UserResponse(BaseModel):
     skills: List[str] = []
     about_me: Optional[str] = None
     location: str = "San Salvador"
+    wallet_balance: float = 0.0
 
 # Service Models
 class Service(BaseModel):
@@ -139,9 +141,12 @@ class Job(BaseModel):
     final_price: Optional[float] = None
     commission_rate: float = 0.10  # 10% commission
     commission_amount: float = 0.0
+    payment_method: str = "cash"  # cash | bank_transfer
     payment_status: str = PaymentStatus.PENDING
+    commission_status: str = "owed"  # owed | paid
     customer_rating: Optional[float] = None
     contractor_rating: Optional[float] = None
+    bid_count: int = 0
     created_at: datetime = Field(default_factory=datetime.utcnow)
     completed_at: Optional[datetime] = None
 
@@ -479,6 +484,17 @@ async def start_job(job_id: str, current_user: dict = Depends(get_current_user))
     if job["contractor_id"] != current_user["id"]:
         raise HTTPException(status_code=403, detail="Not your job")
     
+    # Check wallet balance — contractor must cover commission
+    # Get fresh user data from database (JWT token may have stale wallet_balance)
+    fresh_user = await db.users.find_one({"id": current_user["id"]})
+    commission_needed = job["budget"] * job.get("commission_rate", 0.10)
+    wallet_balance = fresh_user.get("wallet_balance", 0.0) if fresh_user else 0.0
+    if wallet_balance < commission_needed:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Insufficient balance. You need ${commission_needed:.2f} in your wallet to cover the commission. Current balance: ${wallet_balance:.2f}. Please top up."
+        )
+    
     await db.jobs.update_one(
         {"id": job_id},
         {"$set": {"status": JobStatus.IN_PROGRESS}}
@@ -494,7 +510,25 @@ async def complete_job(job_id: str, final_price: Optional[float] = None, current
         raise HTTPException(status_code=403, detail="Not your job")
     
     price = final_price or job["budget"]
-    commission = price * job["commission_rate"]
+    commission = price * job.get("commission_rate", 0.10)
+    
+    # Deduct commission from contractor wallet
+    await db.users.update_one(
+        {"id": current_user["id"]},
+        {"$inc": {"wallet_balance": -commission}}
+    )
+    
+    # Log commission deduction
+    await db.commission_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "job_id": job_id,
+        "contractor_id": current_user["id"],
+        "amount": commission,
+        "job_price": price,
+        "commission_rate": job.get("commission_rate", 0.10),
+        "type": "deduction",
+        "created_at": datetime.utcnow(),
+    })
     
     await db.jobs.update_one(
         {"id": job_id},
@@ -503,6 +537,7 @@ async def complete_job(job_id: str, final_price: Optional[float] = None, current
             "final_price": price,
             "commission_amount": commission,
             "payment_status": PaymentStatus.RELEASED,
+            "commission_status": "paid",
             "completed_at": datetime.utcnow()
         }}
     )
@@ -663,6 +698,115 @@ async def get_my_bids(current_user: dict = Depends(get_current_user)):
     
     bids = await db.bids.find({"contractor_id": current_user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(100)
     return bids
+
+# ============== WALLET ROUTES ==============
+
+class WalletAdjustment(BaseModel):
+    amount: float
+    reason: str = "Admin adjustment"
+
+@api_router.put("/admin/wallet/{user_id}/adjust")
+async def adjust_wallet(user_id: str, adjustment: WalletAdjustment, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    new_balance = user.get("wallet_balance", 0.0) + adjustment.amount
+    await db.users.update_one({"id": user_id}, {"$set": {"wallet_balance": new_balance}})
+    
+    # Log the adjustment
+    await db.commission_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "job_id": None,
+        "contractor_id": user_id,
+        "amount": adjustment.amount,
+        "job_price": 0,
+        "commission_rate": 0,
+        "type": "top_up" if adjustment.amount > 0 else "withdrawal",
+        "reason": adjustment.reason,
+        "admin_id": current_user["id"],
+        "created_at": datetime.utcnow(),
+    })
+    
+    return {"message": f"Wallet adjusted by ${adjustment.amount:.2f}", "new_balance": new_balance}
+
+@api_router.get("/wallet/balance")
+async def get_wallet_balance(current_user: dict = Depends(get_current_user)):
+    return {
+        "balance": current_user.get("wallet_balance", 0.0),
+        "user_id": current_user["id"],
+    }
+
+@api_router.get("/wallet/history")
+async def get_wallet_history(current_user: dict = Depends(get_current_user)):
+    logs = await db.commission_logs.find(
+        {"contractor_id": current_user["id"]}, {"_id": 0}
+    ).sort("created_at", -1).to_list(50)
+    return logs
+
+# ============== CHAT ROUTES ==============
+
+class ChatMessageCreate(BaseModel):
+    message: str
+
+@api_router.post("/chat/{job_id}/send")
+async def send_chat_message(job_id: str, msg: ChatMessageCreate, current_user: dict = Depends(get_current_user)):
+    job = await db.jobs.find_one({"id": job_id})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Only job owner and assigned contractor can chat
+    if current_user["id"] not in [job["customer_id"], job.get("contractor_id")]:
+        raise HTTPException(status_code=403, detail="Not authorized for this chat")
+    
+    # Chat only available after bid acceptance
+    if job["status"] == JobStatus.PENDING:
+        raise HTTPException(status_code=400, detail="Chat is only available after a bid is accepted")
+    
+    # Determine receiver
+    if current_user["id"] == job["customer_id"]:
+        receiver_id = job["contractor_id"]
+    else:
+        receiver_id = job["customer_id"]
+    
+    message = {
+        "id": str(uuid.uuid4()),
+        "job_id": job_id,
+        "sender_id": current_user["id"],
+        "sender_name": current_user.get("full_name", ""),
+        "receiver_id": receiver_id,
+        "message": msg.message,
+        "timestamp": datetime.utcnow(),
+    }
+    
+    await db.messages.insert_one(message)
+    
+    return {"message": "Sent", "id": message["id"]}
+
+@api_router.get("/chat/{job_id}/messages")
+async def get_chat_messages(job_id: str, after: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    job = await db.jobs.find_one({"id": job_id})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    if current_user["id"] not in [job["customer_id"], job.get("contractor_id")]:
+        raise HTTPException(status_code=403, detail="Not authorized for this chat")
+    
+    query = {"job_id": job_id}
+    if after:
+        query["timestamp"] = {"$gt": datetime.fromisoformat(after)}
+    
+    messages = await db.messages.find(query, {"_id": 0}).sort("timestamp", 1).to_list(200)
+    
+    # Convert datetime to string
+    for m in messages:
+        if isinstance(m.get("timestamp"), datetime):
+            m["timestamp"] = m["timestamp"].isoformat()
+    
+    return messages
 
 # ============== FINANCE ROUTES ==============
 
@@ -914,7 +1058,8 @@ async def seed_database():
             review_count=10 + i * 5,
             skills=skills_pool[i:i+2] if i < len(skills_pool) - 1 else [skills_pool[i]],
             about_me="Profesional con años de experiencia en servicios del hogar.",
-            avatar_url=f"https://ui-avatars.com/api/?name={name.replace(' ', '+')}&background=2563eb&color=fff"
+            avatar_url=f"https://ui-avatars.com/api/?name={name.replace(' ', '+')}&background=2563eb&color=fff",
+            wallet_balance=50.0,
         )
         contractor_dict = contractor.dict()
         contractor_dict["password_hash"] = get_password_hash("password123")

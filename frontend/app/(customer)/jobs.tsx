@@ -11,6 +11,7 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeStore } from '../../src/store/themeStore';
 import { Job, JobStatus, Bid } from '../../src/types';
@@ -20,6 +21,7 @@ import { t } from '../../src/i18n/translations';
 
 export default function CustomerJobs() {
   const { colors } = useThemeStore();
+  const router = useRouter();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<string>('all');
@@ -191,13 +193,22 @@ export default function CustomerJobs() {
                 </View>
               )}
 
-              {/* ACCEPTED/IN_PROGRESS: show contractor info */}
+              {/* ACCEPTED/IN_PROGRESS: show contractor info + Message button */}
               {(job.status === JobStatus.ACCEPTED || job.status === JobStatus.IN_PROGRESS) && (
-                <View style={[styles.statusInfo, { backgroundColor: colors.surfaceAlt }]}>
-                  <Ionicons name="person-circle" size={20} color={colors.accent} />
-                  <Text style={[styles.statusInfoText, { color: colors.text }]}>
-                    {job.status === JobStatus.ACCEPTED ? 'Contractor assigned — awaiting start' : 'Work in progress'}
-                  </Text>
+                <View>
+                  <View style={[styles.statusInfo, { backgroundColor: colors.surfaceAlt }]}>
+                    <Ionicons name="person-circle" size={20} color={colors.accent} />
+                    <Text style={[styles.statusInfoText, { color: colors.text }]}>
+                      {job.status === JobStatus.ACCEPTED ? 'Contractor assigned — awaiting start' : 'Work in progress'}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    style={[styles.messageBtn, { backgroundColor: colors.accent }]}
+                    onPress={() => router.push({ pathname: '/(customer)/chat', params: { jobId: job.id, otherName: 'Contractor' } })}
+                  >
+                    <Ionicons name="chatbubble" size={16} color={colors.accentText} />
+                    <Text style={[styles.messageBtnText, { color: colors.accentText }]}>Message Contractor</Text>
+                  </TouchableOpacity>
                 </View>
               )}
 
@@ -355,4 +366,6 @@ const styles = StyleSheet.create({
   acceptBidText: { fontWeight: '700', fontSize: 14 },
   bidStatusBadge: { flexDirection: 'row', alignItems: 'center', marginTop: 8, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 6, gap: 4, alignSelf: 'flex-start' },
   bidStatusText: { fontSize: 12, fontWeight: '600' },
+  messageBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 8, paddingVertical: 10, borderRadius: 10, gap: 6 },
+  messageBtnText: { fontWeight: '700', fontSize: 14 },
 });

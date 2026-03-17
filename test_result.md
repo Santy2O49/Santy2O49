@@ -222,6 +222,81 @@ backend:
         agent: "main"
         comment: "Creates default services, admin, contractors, and customers"
 
+  - task: "Wallet System (Admin Top-up, Balance Check, History)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Admin wallet adjustment endpoint, contractor balance checking, wallet transaction history"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Complete wallet system working. Admin can top-up contractor wallets ($50 adjustments tested), contractors can check balance, wallet history tracks all transactions (top-ups, commission deductions). Real-time balance validation implemented."
+
+  - task: "Commission System (Deduction on Job Completion)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "10% commission calculation and automatic deduction on job completion with logging"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Commission system working perfectly. 10% commission calculated accurately on job completion, automatically deducted from contractor wallet, all transactions logged to database. Commission calculations verified ($3.50 on $35 job)."
+
+  - task: "Insufficient Balance Prevention"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Initial implementation had stale balance issue from JWT token"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED & FIXED: Insufficient balance check working correctly. Fixed JWT stale data issue by fetching fresh user balance from database. Contractor with $138 balance correctly rejected from starting job requiring $188 commission. Error message clear and informative."
+
+  - task: "Chat System (Job-specific Messaging)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Job-specific chat between customers and contractors with message history"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Chat system working excellently. Job-specific messaging between customers/contractors, chat only available after bid acceptance (pending jobs properly rejected with 400 error), unauthorized access blocked (403 errors), message history retrieval working, bi-directional conversation tested."
+
+  - task: "Job Payment Fields (payment_method, commission_status)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Jobs have payment_method and commission_status fields with proper defaults and transitions"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Payment fields working correctly. Jobs created with payment_method='cash' by default, commission_status starts as 'owed' and transitions to 'paid' upon job completion. Field validation working properly."
+
 frontend:
   - task: "Login/Registration Screens"
     implemented: true
@@ -426,3 +501,5 @@ agent_communication:
     message: "🎯 CUSTOMER UI TESTING COMPLETE: Comprehensive testing of HAMMR Expo (React Native Web) Customer UI completed with excellent results. All core features tested: ✅ Login process (Customer button + 2nd login works), ✅ Customer Home (map iframe, location badge 'San Salvador, SV', service categories), ✅ Custom Drawer (hamburger menu at coordinates 36,68, user info, navigation links), ✅ Theme Toggle (Dark↔Light working perfectly), ✅ Tab Navigation (Home, Jobs, Profile, Settings all working), ✅ Settings Screen (appearance, language, logout), ✅ Profile Screen (Sofia Mendez, stats, account info). Only minor issue: service request flow uses different selectors than expected. App performs excellently as mobile-first React Native Web application."
   - agent: "testing"
     message: "🎯 E2E BIDDING SYSTEM TESTING COMPLETE: Comprehensive test of HAMMR's new bidding system executed successfully. All 23/23 test cases passed (100% success rate). Complete E2E bidding flow tested: ✅ Customer posts job → ✅ Multiple contractors place bids (contractor1: $120, contractor2: $135) → ✅ Customer views all bids → ✅ Customer accepts one bid (others automatically rejected) → ✅ Job progresses through accepted→in_progress→completed states → ✅ Both parties rate each other (customer: 5★, contractor: 4★). Additional validations tested: ✅ Duplicate bid prevention (400 error), ✅ Contractor 'my bids' endpoint, ✅ Available jobs filtering, ✅ Customer job filtering, ✅ Edge case: accepting bid on completed job (400 error). All bidding endpoints working perfectly with proper status transitions and data integrity. Commission calculations accurate ($11.80 on $118 final price). Backend bidding system fully functional and ready for production."
+  - agent: "testing"
+    message: "🎯 WALLET + COMMISSION + CHAT SYSTEMS TESTING COMPLETE: Comprehensive E2E testing of HAMMR's new Wallet, Commission, and Chat systems executed successfully. ✅ All 14/14 test cases passed (100% success rate after fixes). WALLET SYSTEM: ✅ Admin wallet top-up working ($50 adjustments), ✅ Real-time balance tracking, ✅ Wallet history logging (top-ups, deductions), ✅ Fresh balance validation (fixed JWT stale data issue). COMMISSION SYSTEM: ✅ 10% commission calculation accurate, ✅ Automatic deduction on job completion, ✅ Commission logging in database, ✅ Insufficient balance prevention working (contractor needs $188 commission, has $138 - correctly rejected). CHAT SYSTEM: ✅ Job-specific messaging between customers/contractors, ✅ Chat only available after bid acceptance (pending jobs rejected), ✅ Unauthorized access blocked (403 errors), ✅ Message history retrieval working. PAYMENT FIELDS: ✅ Jobs have payment_method='cash' by default, ✅ commission_status transitions from 'owed' to 'paid' on completion. All new systems integrated seamlessly with existing bidding workflow. Production ready."
