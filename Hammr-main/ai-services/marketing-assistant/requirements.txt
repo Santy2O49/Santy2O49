@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+tensorflow
+torch
+transformers
+scikit-learn
+pandas
+numpy
+google-cloud-storage
+google-cloud-bigquery

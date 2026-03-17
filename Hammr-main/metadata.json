@@ -1,0 +1,5 @@
+{
+  "name": "HAMMR Admin Panel",
+  "description": "A comprehensive web-based administrative interface for HAMMR staff to manage users, contractors, jobs, finances, and AI-driven marketing campaigns.",
+  "requestFramePermissions": []
+}
