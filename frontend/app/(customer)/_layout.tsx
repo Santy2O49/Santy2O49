@@ -1,25 +1,26 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
+import { Platform } from 'react-native';
 
 export default function CustomerLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#16a34a',
-        tabBarInactiveTintColor: '#9ca3af',
+        tabBarActiveTintColor: '#c8ff00',
+        tabBarInactiveTintColor: '#6b7280',
         tabBarStyle: {
-          backgroundColor: '#ffffff',
+          backgroundColor: '#1a1a1a',
           borderTopWidth: 1,
-          borderTopColor: '#f1f5f9',
-          paddingTop: 8,
-          paddingBottom: 8,
-          height: 70,
+          borderTopColor: '#333',
+          paddingTop: Platform.OS === 'ios' ? 8 : 4,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 8,
+          height: Platform.OS === 'ios' ? 85 : 65,
         },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '500',
-          marginTop: 4,
+          marginTop: 2,
         },
         headerShown: false,
       }}
@@ -27,18 +28,18 @@ export default function CustomerLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Inicio',
+          title: 'Servicios',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+            <Ionicons name="construct" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="jobs"
         options={{
-          title: 'Mis Trabajos',
+          title: 'Mis Solicitudes',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="clipboard" size={size} color={color} />
+            <Ionicons name="document-text" size={size} color={color} />
           ),
         }}
       />
@@ -49,6 +50,27 @@ export default function CustomerLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Ajustes',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="help"
+        options={{
+          href: null, // Hidden from tabs but still accessible
+        }}
+      />
+      <Tabs.Screen
+        name="request"
+        options={{
+          href: null, // Hidden from tabs but still accessible
         }}
       />
     </Tabs>

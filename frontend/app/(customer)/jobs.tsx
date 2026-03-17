@@ -11,10 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Job, JobStatus } from '../../src/types';
-import { Card } from '../../src/components/Card';
 import { StatusBadge } from '../../src/components/StatusBadge';
-import { ServiceIcon } from '../../src/components/ServiceIcon';
-import { Button } from '../../src/components/Button';
 import api from '../../src/api/client';
 
 export default function CustomerJobs() {
@@ -89,8 +86,9 @@ export default function CustomerJobs() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Mis Trabajos</Text>
+        <Text style={styles.title}>Mis Solicitudes</Text>
       </View>
 
       {/* Filters */}
@@ -98,6 +96,7 @@ export default function CustomerJobs() {
         horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.filterContainer}
+        contentContainerStyle={styles.filterContent}
       >
         {filters.map(f => (
           <TouchableOpacity
@@ -123,24 +122,25 @@ export default function CustomerJobs() {
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#c8ff00" />
         }
       >
         {filteredJobs.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="clipboard-outline" size={64} color="#d1d5db" />
-            <Text style={styles.emptyTitle}>No hay trabajos</Text>
+            <Ionicons name="clipboard-outline" size={64} color="#4b5563" />
+            <Text style={styles.emptyTitle}>No hay solicitudes</Text>
             <Text style={styles.emptyText}>Tus solicitudes aparecerán aquí</Text>
           </View>
         ) : (
           filteredJobs.map(job => (
-            <Card key={job.id} style={styles.jobCard}>
+            <View key={job.id} style={styles.jobCard}>
               <View style={styles.jobHeader}>
                 <View style={styles.jobInfo}>
                   <Text style={styles.jobTitle}>{job.service_name}</Text>
-                  <Text style={styles.jobLocation}>
-                    <Ionicons name="location" size={12} color="#64748b" /> {job.location}
-                  </Text>
+                  <View style={styles.locationRow}>
+                    <Ionicons name="location" size={12} color="#6b7280" />
+                    <Text style={styles.jobLocation}>{job.location}</Text>
+                  </View>
                 </View>
                 <StatusBadge status={job.status} />
               </View>
@@ -162,14 +162,13 @@ export default function CustomerJobs() {
                 </View>
               </View>
 
-              {/* Actions based on status */}
               {job.status === JobStatus.PENDING && (
-                <Button
-                  title="Cancelar"
-                  variant="secondary"
+                <TouchableOpacity
+                  style={styles.cancelButton}
                   onPress={() => handleCancel(job.id)}
-                  style={styles.actionButton}
-                />
+                >
+                  <Text style={styles.cancelButtonText}>Cancelar</Text>
+                </TouchableOpacity>
               )}
 
               {job.status === JobStatus.COMPLETED && !job.contractor_rating && (
@@ -203,7 +202,7 @@ export default function CustomerJobs() {
                   </View>
                 </View>
               )}
-            </Card>
+            </View>
           ))
         )}
       </ScrollView>
@@ -214,44 +213,49 @@ export default function CustomerJobs() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#1a1a1a',
   },
   header: {
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: '#262626',
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
-    color: '#111827',
+    color: '#ffffff',
   },
   filterContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 16,
+    maxHeight: 60,
+    backgroundColor: '#1a1a1a',
+  },
+  filterContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 8,
   },
   filterButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#262626',
     marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
   },
   filterButtonActive: {
-    backgroundColor: '#16a34a',
-    borderColor: '#16a34a',
+    backgroundColor: '#c8ff00',
   },
   filterText: {
     fontSize: 14,
-    color: '#64748b',
+    color: '#9ca3af',
     fontWeight: '500',
   },
   filterTextActive: {
-    color: '#ffffff',
+    color: '#1a1a1a',
   },
   content: {
-    padding: 20,
-    paddingTop: 0,
+    padding: 16,
   },
   emptyState: {
     alignItems: 'center',
@@ -260,16 +264,19 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#374151',
+    color: '#ffffff',
     marginTop: 16,
   },
   emptyText: {
     fontSize: 14,
-    color: '#64748b',
+    color: '#6b7280',
     marginTop: 4,
   },
   jobCard: {
-    marginBottom: 16,
+    backgroundColor: '#262626',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
   },
   jobHeader: {
     flexDirection: 'row',
@@ -283,16 +290,21 @@ const styles = StyleSheet.create({
   jobTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: '#ffffff',
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
   },
   jobLocation: {
     fontSize: 12,
-    color: '#64748b',
-    marginTop: 4,
+    color: '#6b7280',
+    marginLeft: 4,
   },
   jobDescription: {
     fontSize: 14,
-    color: '#64748b',
+    color: '#9ca3af',
     marginBottom: 12,
   },
   jobFooter: {
@@ -300,38 +312,46 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
+    borderTopColor: '#333',
   },
   jobPriceLabel: {
     fontSize: 12,
-    color: '#64748b',
+    color: '#6b7280',
   },
   jobPrice: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#16a34a',
+    color: '#c8ff00',
   },
   jobDateLabel: {
     fontSize: 12,
-    color: '#64748b',
+    color: '#6b7280',
   },
   jobDate: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
+    color: '#ffffff',
   },
-  actionButton: {
+  cancelButton: {
     marginTop: 12,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: '#333',
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#ef4444',
+    fontWeight: '600',
   },
   ratingSection: {
     marginTop: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
+    borderTopColor: '#333',
   },
   ratingLabel: {
     fontSize: 14,
-    color: '#374151',
+    color: '#ffffff',
     marginBottom: 8,
   },
   stars: {
@@ -346,6 +366,6 @@ const styles = StyleSheet.create({
   },
   ratedLabel: {
     fontSize: 12,
-    color: '#64748b',
+    color: '#6b7280',
   },
 });

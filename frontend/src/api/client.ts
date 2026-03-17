@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://multi-access-hub.preview.emergentagent.com';
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://contractor-connect-36.preview.emergentagent.com';
 
 let authToken: string | null = null;
 

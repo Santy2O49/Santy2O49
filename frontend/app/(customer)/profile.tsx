@@ -8,25 +8,30 @@ import {
   Image,
   Alert,
   Modal,
-  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useNavigation } from 'expo-router';
+import { DrawerActions } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useAuthStore } from '../../src/store/authStore';
-import { Card } from '../../src/components/Card';
-import { Button } from '../../src/components/Button';
 import { Input } from '../../src/components/Input';
 import { t } from '../../src/i18n/translations';
 
 export default function CustomerProfile() {
   const router = useRouter();
+  const navigation = useNavigation();
   const { user, logout } = useAuthStore();
+  
   const [editModalVisible, setEditModalVisible] = useState(false);
-  const [termsModalVisible, setTermsModalVisible] = useState(false);
-  const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
+  const [verifyModalVisible, setVerifyModalVisible] = useState(false);
+  const [profileImage, setProfileImage] = useState(user?.avatar_url || '');
   const [editName, setEditName] = useState(user?.full_name || '');
   const [editPhone, setEditPhone] = useState(user?.phone || '');
+
+  const openDrawer = () => {
+    navigation.dispatch(DrawerActions.openDrawer());
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -46,89 +51,163 @@ export default function CustomerProfile() {
     );
   };
 
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso necesario', 'Necesitamos acceso a tu galería');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setProfileImage(result.assets[0].uri);
+      Alert.alert('Éxito', 'Foto de perfil actualizada');
+    }
+  };
+
+  const takeVerificationPhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso necesario', 'Necesitamos acceso a tu cámara');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setVerifyModalVisible(false);
+      Alert.alert(
+        'Verificación enviada',
+        'Tu foto de verificación ha sido enviada. Te notificaremos cuando sea aprobada.'
+      );
+    }
+  };
+
   const handleSaveProfile = () => {
-    Alert.alert('Success', 'Profile updated!');
+    Alert.alert('Éxito', 'Perfil actualizado');
     setEditModalVisible(false);
   };
 
-  const menuItems = [
-    { icon: 'person-outline', label: t('editProfile'), onPress: () => setEditModalVisible(true) },
-    { icon: 'card-outline', label: t('paymentMethods'), onPress: () => Alert.alert(t('paymentMethods'), 'Coming soon!') },
-    { icon: 'location-outline', label: t('addresses'), onPress: () => Alert.alert(t('addresses'), 'Coming soon!') },
-    { icon: 'notifications-outline', label: t('notifications'), onPress: () => Alert.alert(t('notifications'), 'Coming soon!') },
-    { icon: 'help-circle-outline', label: t('helpSupport'), onPress: () => Alert.alert(t('helpSupport'), 'Email: support@hammr.com') },
-    { icon: 'document-text-outline', label: t('termsConditions'), onPress: () => setTermsModalVisible(true) },
-    { icon: 'shield-checkmark-outline', label: t('privacyPolicy'), onPress: () => setPrivacyModalVisible(true) },
-  ];
-
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{t('profile')}</Text>
-        </View>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.menuButton} onPress={openDrawer}>
+          <Ionicons name="menu" size={24} color="#ffffff" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Mi Perfil</Text>
+        <TouchableOpacity onPress={() => setEditModalVisible(true)}>
+          <Ionicons name="pencil" size={22} color="#c8ff00" />
+        </TouchableOpacity>
+      </View>
 
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
-        <Card style={styles.profileCard}>
-          <View style={styles.profileHeader}>
+        <View style={styles.profileCard}>
+          <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
             <Image
-              source={{ uri: user?.avatar_url || 'https://ui-avatars.com/api/?name=User&background=16a34a&color=fff' }}
+              source={{ uri: profileImage || 'https://ui-avatars.com/api/?name=User&background=c8ff00&color=1a1a1a&size=120' }}
               style={styles.avatar}
             />
-            <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{user?.full_name}</Text>
-              <Text style={styles.profileEmail}>{user?.email}</Text>
-              <View style={styles.ratingContainer}>
-                <Ionicons name="star" size={14} color="#fbbf24" />
-                <Text style={styles.ratingText}>
-                  {user?.rating?.toFixed(1) || '0.0'} ({user?.review_count || 0})
-                </Text>
-              </View>
+            <View style={styles.cameraIcon}>
+              <Ionicons name="camera" size={16} color="#ffffff" />
             </View>
+          </TouchableOpacity>
+          
+          <Text style={styles.profileName}>{user?.full_name}</Text>
+          <Text style={styles.profileEmail}>{user?.email}</Text>
+          
+          <View style={styles.ratingRow}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Ionicons
+                key={star}
+                name="star"
+                size={18}
+                color={star <= Math.floor(user?.rating || 5) ? '#fbbf24' : '#4b5563'}
+              />
+            ))}
+            <Text style={styles.ratingText}>
+              {user?.rating?.toFixed(2) || '5.00'} ({user?.review_count || 0} reseñas)
+            </Text>
           </View>
-        </Card>
+
+          {/* Verification Badge */}
+          {user?.is_verified ? (
+            <View style={styles.verifiedBadge}>
+              <Ionicons name="checkmark-circle" size={18} color="#22c55e" />
+              <Text style={styles.verifiedText}>Cuenta Verificada</Text>
+            </View>
+          ) : (
+            <TouchableOpacity 
+              style={styles.verifyButton}
+              onPress={() => setVerifyModalVisible(true)}
+            >
+              <Ionicons name="shield-checkmark" size={18} color="#c8ff00" />
+              <Text style={styles.verifyButtonText}>Verificar mi cuenta</Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
         {/* Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>12</Text>
-            <Text style={styles.statLabel}>{t('jobs')}</Text>
+            <Text style={styles.statLabel}>Solicitudes</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statValue}>8</Text>
-            <Text style={styles.statLabel}>{t('completed')}</Text>
+            <Text style={styles.statLabel}>Completadas</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statValue}>$450</Text>
-            <Text style={styles.statLabel}>{t('total')}</Text>
+            <Text style={styles.statLabel}>Gastado</Text>
           </View>
         </View>
 
-        {/* Menu Items */}
-        <Card style={styles.menuCard}>
-          {menuItems.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.menuItem,
-                index < menuItems.length - 1 && styles.menuItemBorder,
-              ]}
-              onPress={item.onPress}
-            >
-              <View style={styles.menuItemLeft}>
-                <Ionicons name={item.icon as any} size={22} color="#64748b" />
-                <Text style={styles.menuItemLabel}>{item.label}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#d1d5db" />
-            </TouchableOpacity>
-          ))}
-        </Card>
+        {/* Account Info */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Información de cuenta</Text>
+          
+          <View style={styles.infoRow}>
+            <Ionicons name="person" size={20} color="#6b7280" />
+            <Text style={styles.infoLabel}>Nombre</Text>
+            <Text style={styles.infoValue}>{user?.full_name}</Text>
+          </View>
+          
+          <View style={styles.infoRow}>
+            <Ionicons name="mail" size={20} color="#6b7280" />
+            <Text style={styles.infoLabel}>Email</Text>
+            <Text style={styles.infoValue}>{user?.email}</Text>
+          </View>
+          
+          <View style={styles.infoRow}>
+            <Ionicons name="call" size={20} color="#6b7280" />
+            <Text style={styles.infoLabel}>Teléfono</Text>
+            <Text style={styles.infoValue}>{user?.phone}</Text>
+          </View>
+          
+          <View style={styles.infoRow}>
+            <Ionicons name="location" size={20} color="#6b7280" />
+            <Text style={styles.infoLabel}>Ubicación</Text>
+            <Text style={styles.infoValue}>{user?.location || 'San Salvador'}</Text>
+          </View>
+        </View>
 
-        {/* Logout Button */}
+        {/* Logout */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={22} color="#dc2626" />
+          <Ionicons name="log-out-outline" size={20} color="#ef4444" />
           <Text style={styles.logoutText}>{t('logout')}</Text>
         </TouchableOpacity>
 
@@ -145,108 +224,60 @@ export default function CustomerProfile() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('editProfile')}</Text>
+              <Text style={styles.modalTitle}>Editar Perfil</Text>
               <TouchableOpacity onPress={() => setEditModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#374151" />
+                <Ionicons name="close" size={24} color="#ffffff" />
               </TouchableOpacity>
             </View>
             <Input
-              label={t('fullName')}
+              label="Nombre completo"
               value={editName}
               onChangeText={setEditName}
-              placeholder="Your name"
+              placeholder="Tu nombre"
             />
             <Input
-              label={t('phone')}
+              label="Teléfono"
               value={editPhone}
               onChangeText={setEditPhone}
               placeholder="7000-0000"
               keyboardType="phone-pad"
             />
-            <Button title="Save" onPress={handleSaveProfile} variant="success" />
+            <TouchableOpacity style={styles.saveButton} onPress={handleSaveProfile}>
+              <Text style={styles.saveButtonText}>Guardar cambios</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
-      {/* Terms Modal */}
+      {/* Verify Modal */}
       <Modal
-        visible={termsModalVisible}
+        visible={verifyModalVisible}
         animationType="slide"
         transparent={true}
-        onRequestClose={() => setTermsModalVisible(false)}
+        onRequestClose={() => setVerifyModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContentFull}>
+          <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('termsConditions')}</Text>
-              <TouchableOpacity onPress={() => setTermsModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#374151" />
+              <Text style={styles.modalTitle}>Verificar cuenta</Text>
+              <TouchableOpacity onPress={() => setVerifyModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#ffffff" />
               </TouchableOpacity>
             </View>
-            <ScrollView style={styles.legalText}>
-              <Text style={styles.legalTitle}>Terms and Conditions</Text>
-              <Text style={styles.legalParagraph}>
-                Welcome to HAMMR. By using our platform, you agree to the following terms:
+            
+            <View style={styles.verifyInstructions}>
+              <Ionicons name="camera" size={48} color="#c8ff00" />
+              <Text style={styles.verifyTitle}>Toma una foto de tu rostro</Text>
+              <Text style={styles.verifyDescription}>
+                Para verificar tu cuenta, necesitamos una foto clara de tu rostro. 
+                Asegúrate de estar en un lugar bien iluminado.
               </Text>
-              <Text style={styles.legalParagraph}>
-                1. HAMMR is a marketplace connecting customers with service providers in El Salvador.
-              </Text>
-              <Text style={styles.legalParagraph}>
-                2. Users must be 18 years or older to use this service.
-              </Text>
-              <Text style={styles.legalParagraph}>
-                3. Service providers are independent contractors, not employees of HAMMR.
-              </Text>
-              <Text style={styles.legalParagraph}>
-                4. HAMMR charges a 10% commission on completed services.
-              </Text>
-              <Text style={styles.legalParagraph}>
-                5. Users are responsible for the accuracy of information provided.
-              </Text>
-              <Text style={styles.legalParagraph}>
-                6. HAMMR reserves the right to suspend accounts for policy violations.
-              </Text>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Privacy Policy Modal */}
-      <Modal
-        visible={privacyModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setPrivacyModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContentFull}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('privacyPolicy')}</Text>
-              <TouchableOpacity onPress={() => setPrivacyModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#374151" />
-              </TouchableOpacity>
             </View>
-            <ScrollView style={styles.legalText}>
-              <Text style={styles.legalTitle}>Privacy Policy</Text>
-              <Text style={styles.legalParagraph}>
-                HAMMR is committed to protecting your privacy. This policy explains how we collect and use your data.
-              </Text>
-              <Text style={styles.legalParagraph}>
-                Information We Collect: Name, email, phone number, location data, and service history.
-              </Text>
-              <Text style={styles.legalParagraph}>
-                How We Use It: To connect you with service providers, process payments, and improve our service.
-              </Text>
-              <Text style={styles.legalParagraph}>
-                Data Sharing: We share necessary information with service providers to complete your requests.
-              </Text>
-              <Text style={styles.legalParagraph}>
-                Security: We use industry-standard encryption to protect your data.
-              </Text>
-              <Text style={styles.legalParagraph}>
-                Contact: For privacy concerns, email privacy@hammr.com
-              </Text>
-            </ScrollView>
+            
+            <TouchableOpacity style={styles.cameraButton} onPress={takeVerificationPhoto}>
+              <Ionicons name="camera" size={24} color="#1a1a1a" />
+              <Text style={styles.cameraButtonText}>Tomar foto</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -257,60 +288,118 @@ export default function CustomerProfile() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#1a1a1a',
   },
   header: {
-    padding: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  profileCard: {
-    marginHorizontal: 20,
-    marginBottom: 20,
-  },
-  profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: '#262626',
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
   },
-  avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+  menuButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  profileInfo: {
-    marginLeft: 16,
+  headerTitle: {
+    flex: 1,
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  content: {
     flex: 1,
   },
+  profileCard: {
+    alignItems: 'center',
+    padding: 24,
+    backgroundColor: '#262626',
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 16,
+  },
+  avatarContainer: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: '#c8ff00',
+  },
+  cameraIcon: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#c8ff00',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   profileName: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#111827',
+    color: '#ffffff',
   },
   profileEmail: {
     fontSize: 14,
-    color: '#64748b',
-    marginTop: 2,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    color: '#9ca3af',
     marginTop: 4,
   },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+  },
   ratingText: {
-    fontSize: 12,
-    color: '#64748b',
-    marginLeft: 4,
+    color: '#9ca3af',
+    fontSize: 14,
+    marginLeft: 8,
+  },
+  verifiedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#22c55e20',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginTop: 16,
+    gap: 6,
+  },
+  verifiedText: {
+    color: '#22c55e',
+    fontWeight: '600',
+  },
+  verifyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#333',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 16,
+    gap: 8,
+  },
+  verifyButtonText: {
+    color: '#c8ff00',
+    fontWeight: '600',
   },
   statsContainer: {
     flexDirection: 'row',
-    backgroundColor: '#ffffff',
-    marginHorizontal: 20,
+    backgroundColor: '#262626',
+    marginHorizontal: 16,
+    marginTop: 16,
     borderRadius: 16,
     padding: 20,
-    marginBottom: 20,
   },
   statItem: {
     flex: 1,
@@ -319,105 +408,132 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#16a34a',
+    color: '#c8ff00',
   },
   statLabel: {
     fontSize: 12,
-    color: '#64748b',
+    color: '#9ca3af',
     marginTop: 4,
   },
   statDivider: {
     width: 1,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: '#333',
   },
-  menuCard: {
-    marginHorizontal: 20,
-    marginBottom: 20,
-    padding: 0,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  section: {
+    backgroundColor: '#262626',
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 16,
     padding: 16,
   },
-  menuItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+  sectionTitle: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 16,
   },
-  menuItemLeft: {
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
   },
-  menuItemLabel: {
-    fontSize: 15,
-    color: '#374151',
+  infoLabel: {
+    flex: 1,
+    color: '#9ca3af',
     marginLeft: 12,
+  },
+  infoValue: {
+    color: '#ffffff',
+    fontWeight: '500',
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 20,
+    marginHorizontal: 16,
+    marginTop: 24,
     padding: 16,
-    backgroundColor: '#fef2f2',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
     borderRadius: 12,
+    gap: 8,
   },
   logoutText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#dc2626',
-    marginLeft: 8,
+    color: '#ef4444',
   },
   version: {
     textAlign: 'center',
-    color: '#9ca3af',
+    color: '#6b7280',
     fontSize: 12,
-    marginTop: 20,
+    marginTop: 24,
     marginBottom: 40,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.8)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#262626',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
-  },
-  modalContentFull: {
-    backgroundColor: '#ffffff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    maxHeight: '80%',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#111827',
+    color: '#ffffff',
   },
-  legalText: {
-    flex: 1,
+  saveButton: {
+    backgroundColor: '#c8ff00',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 8,
   },
-  legalTitle: {
-    fontSize: 18,
+  saveButtonText: {
+    color: '#1a1a1a',
+    fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
-    marginBottom: 16,
   },
-  legalParagraph: {
+  verifyInstructions: {
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  verifyTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 16,
+  },
+  verifyDescription: {
+    color: '#9ca3af',
     fontSize: 14,
-    color: '#374151',
+    textAlign: 'center',
+    marginTop: 8,
     lineHeight: 22,
-    marginBottom: 12,
+  },
+  cameraButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#c8ff00',
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  cameraButtonText: {
+    color: '#1a1a1a',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
