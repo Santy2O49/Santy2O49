@@ -1,0 +1,95 @@
+{
+  "theme": "dark",
+  "archetype": "Archetype 4 (Swiss & High-Contrast) - Pro Software Variant",
+  "colors": {
+    "background": "#09090B",
+    "surface": "#121214",
+    "surface_hover": "#1E1E22",
+    "border": "#27272A",
+    "text_primary": "#FFFFFF",
+    "text_secondary": "#A1A1AA",
+    "accent_primary": "#FFCC00",
+    "accent_secondary": "#FF3333",
+    "accent_tertiary": "#0055FF",
+    "destructive": "#FF3333",
+    "success": "#22C55E"
+  },
+  "typography": {
+    "heading_font": "Outfit",
+    "body_font": "IBM Plex Sans",
+    "mono_font": "JetBrains Mono",
+    "rules": [
+      "No Inter for headings. Use Outfit for a sleek, technical look.",
+      "Headings must use tight letter spacing (tracking-tight).",
+      "Overlines, Labels, and UI pane titles (e.g., 'TIMELINE', 'AI EDITOR') must be uppercase, tracking-[0.2em], text-xs, and text_secondary.",
+      "Mono font (JetBrains Mono) is strictly for timestamps, timeline rulers, JSON payloads, and timecodes."
+    ]
+  },
+  "layout": {
+    "strategy": "The 'Control Room' Grid - Dense, functional, edge-to-edge",
+    "structure": [
+      "Top Bar: App logo, project title, global controls, and a high-contrast Export button.",
+      "Main Workspace (CSS Grid or Flex): Divides the screen into 3 vertical panels. Left (25%): Media/Transcript. Center (50%): Video Player Preview. Right (25%): AI Chat Editor.",
+      "Bottom Panel: Timeline stretching 100% width, fixed height (~250px), containing multi-track layers (Video, Audio, Captions) and a collapsible JSON Edit Plan visualizer."
+    ],
+    "spacing": "Tight padding (p-2 to p-4) within panels. 1px borders (border-zinc-800) separate panes instead of heavy shadows or gaps. Avoid rounded 'cards' inside the workspace; use edge-to-edge panes."
+  },
+  "surfaces": {
+    "panels": "Solid #121214 background, sharp edges (rounded-none or max rounded-md). No glassmorphism on main editor panels to prevent visual distraction.",
+    "buttons": "Flat, sharp edges. Primary AI actions in Warning Yellow (#FFCC00) with black text. Destructive/Timeline actions in Signal Red (#FF3333).",
+    "scrollbars": "Must be customized to be ultra-slim or hidden (no gutter) to maintain the clean 'Control Room' aesthetic."
+  },
+  "components": {
+    "video_player": "Center aligned, scalable to fit pane. Playback controls are minimal, floating over the bottom of the video or directly underneath. Use white/gray icons.",
+    "timeline": "Horizontal scrolling. Tracks are stacked vertically with subtle alternating backgrounds (e.g., bg-zinc-900 / bg-zinc-950). The Playhead MUST be a striking 1px Signal Red line with a top triangle indicator.",
+    "ai_chat": "User messages align right with a subtle #1E1E22 background. AI messages align left with a transparent background and a 2px left border in Warning Yellow.",
+    "transcript": "Clickable timestamp blocks. Active word/sentence is highlighted in white, inactive text dimmed to text-zinc-500. Hover states should slightly lighten the text.",
+    "json_viewer": "Collapsible panel. Syntax highlighted using JetBrains Mono. Background is pure #09090B to look like a terminal."
+  },
+  "motion": {
+    "ai_generation": "Use a shimmering effect (linear-gradient moving mask) on text or a pulsing Warning Yellow border when AI is generating the edit plan.",
+    "hover": "Instant, functional color shifts on timeline clips and transcript lines. No floaty, slow animations.",
+    "transitions": "Snappy and minimal (0.1s - 0.15s ease-out)."
+  },
+  "icons": {
+    "library": "@phosphor-icons/react",
+    "weight": "fill for active states, regular/light for inactive. Keep them geometric and sharp."
+  },
+  "image_urls": [
+    {
+      "category": "empty_state",
+      "description": "Abstract dark minimal background for video drop zone",
+      "url": "https://images.unsplash.com/photo-1638864616266-c390568f9092?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTF8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMG1pbmltYWwlMjBsb2dvJTIwZGFya3xlbnwwfHx8fDE3Nzg1NTEwMjl8MA&ixlib=rb-4.1.0&q=85"
+    },
+    {
+      "category": "video_thumbnail_1",
+      "description": "Cinematic video frame for timeline clip or media library preview",
+      "url": "https://images.unsplash.com/photo-1692609377048-25f16f04432b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzF8MHwxfHNlYXJjaHwxfHxjaW5lbWF0aWMlMjB2aWRlbyUyMGVkaXR8ZW58MHx8fHwxNzc4NTUxMDI5fDA&ixlib=rb-4.1.0&q=85"
+    },
+    {
+      "category": "video_thumbnail_2",
+      "description": "Video editing software interface asset",
+      "url": "https://images.unsplash.com/photo-1764557175375-9e2bea91530e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzF8MHwxfHNlYXJjaHw0fHxjaW5lbWF0aWMlMjB2aWRlbyUyMGVkaXR8ZW58MHx8fHwxNzc4NTUxMDI5fDA&ixlib=rb-4.1.0&q=85"
+    },
+    {
+      "category": "user_avatar",
+      "description": "User profile avatar for top nav or chat",
+      "url": "https://images.pexels.com/photos/30513784/pexels-photo-30513784.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    },
+    {
+      "category": "ai_avatar",
+      "description": "AI Assistant avatar for chat",
+      "url": "https://images.unsplash.com/photo-1541415109140-571dd7c83b75?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzF8MHwxfHNlYXJjaHwzfHxjaW5lbWF0aWMlMjB2aWRlbyUyMGVkaXR8ZW58MHx8fHwxNzc4NTUxMDI5fDA&ixlib=rb-4.1.0&q=85"
+    }
+  ],
+  "instructions_to_main_agent": [
+    "Use standard JavaScript (.js/.jsx) for all frontend files, not TypeScript.",
+    "Use pure HTML/Tailwind CSS for the macro-layout (the 3 columns and bottom timeline) to maintain the edge-to-edge pro software look without rigid Shadcn constraints.",
+    "Customize Shadcn components (buttons, inputs) heavily to match the dark 'Control Room' aesthetic. Remove heavy rounding.",
+    "Install Google Fonts 'Outfit', 'IBM Plex Sans', and 'JetBrains Mono' and configure them in tailwind.config.js.",
+    "Global layout must be h-screen overflow-hidden, with individual panels handling their own overflow-y-auto to mimic desktop software.",
+    "Do NOT use purple or teal for primary actions. Stick to the provided Warning Yellow and Signal Red.",
+    "Mandatory: Add 'data-testid' to all buttons, chat inputs, transcript items, and timeline tracks for testing.",
+    "Do NOT use placeholders for images. Use the exact URLs provided in 'image_urls'."
+  ]
+}
